@@ -1,22 +1,34 @@
-import { Link } from '@tanstack/react-router'
+import { useEffect, useState } from 'react'
+import { cn } from '@/lib/utils'
+import { Separator } from '@/components/ui/separator'
+import { SidebarTrigger } from '@/components/ui/sidebar'
 
-/**
- * Minimal stand-in for poc-vente-front's full app shell (sidebar, teams,
- * auth, theme/font/direction providers) — out of scope for this POC, whose
- * point is the Ventes list/detail/form pages themselves, not the admin
- * dashboard chrome around them. See README "Known limitations".
- */
-export function Header() {
+type HeaderProps = React.HTMLAttributes<HTMLElement> & { fixed?: boolean }
+
+export function Header({ className, fixed, children, ...props }: HeaderProps) {
+  const [offset, setOffset] = useState(0)
+
+  useEffect(() => {
+    const onScroll = () => setOffset(document.body.scrollTop || document.documentElement.scrollTop)
+    document.addEventListener('scroll', onScroll, { passive: true })
+    return () => document.removeEventListener('scroll', onScroll)
+  }, [])
+
   return (
-    <header className='flex items-center justify-between border-b px-4 py-3'>
-      <Link to='/' className='font-semibold tracking-tight'>
-        Pagekit Showcase
-      </Link>
-      <nav className='flex gap-4 text-sm text-muted-foreground'>
-        <Link to='/ventes' className='hover:text-foreground [&.active]:text-foreground [&.active]:font-medium'>
-          Ventes
-        </Link>
-      </nav>
+    <header
+      className={cn('z-50 h-16', fixed && 'header-fixed peer/header sticky top-0 w-[inherit]', offset > 10 && fixed ? 'shadow' : 'shadow-none', className)}
+      {...props}
+    >
+      <div
+        className={cn(
+          'relative flex h-full items-center gap-3 p-4 sm:gap-4',
+          offset > 10 && fixed && 'after:absolute after:inset-0 after:-z-10 after:bg-background/20 after:backdrop-blur-lg'
+        )}
+      >
+        <SidebarTrigger variant='outline' className='max-md:scale-125' />
+        <Separator orientation='vertical' className='h-6' />
+        {children}
+      </div>
     </header>
   )
 }

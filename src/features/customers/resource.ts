@@ -1,9 +1,9 @@
 import { createResourceApi, createResourceHooks } from 'tanstack-pagekit'
 import { toast } from '@/lib/toast'
-import { mockHttpClient } from '@/mock/http-client'
+import { httpClient } from '@/lib/http-client'
 import type { Customer, CustomerForm } from '@/features/types'
 
-export const customersApi = createResourceApi<Customer, CustomerForm>(mockHttpClient, '/api/customers/')
+export const customersApi = createResourceApi<Customer, CustomerForm>(httpClient, '/api/customers/')
 
 export const {
   useList: useCustomers,

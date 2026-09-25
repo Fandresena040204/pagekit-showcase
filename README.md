@@ -4,14 +4,22 @@ POC that rebuilds the **Ventes** feature of [poc-vente-front](../poc-vente-front
 
 The goal is a side-by-side comparison: same visual interface (same shadcn/ui components, same Tailwind theme, same table/toolbar/badges), but the list/detail/form *logic* comes from the library instead of being hand-written per page.
 
+The app shell (sidebar, header, theme toggle, JWT auth) is also replicated structurally from `poc-vente-front` — not just the Ventes pages — specifically so the two repos can be compared file-by-file, not just screen-by-screen.
+
 ## Run it
 
+Needs the real backend running (`../poc-django-tanstack`, Postgres + `manage.py runserver 8000`) — this POC talks to it directly, it no longer ships an in-memory mock.
+
 ```bash
+# in ../poc-django-tanstack
+.venv/Scripts/python.exe manage.py runserver 8000
+
+# in this repo
 pnpm install
 pnpm dev
 ```
 
-Open `/ventes`. No backend needed — `src/mock/` implements `tanstack-pagekit`'s `HttpClient` contract in memory (same paginated response shape and query params a real Django backend would receive), seeded with a handful of customers/products/ventes.
+`.env` sets `VITE_API_BASE_URL=http://localhost:8000`. Sign in with the demo account seeded on the backend: **username `admin`, password `admin1234`** (role `admin`, full permissions).
 
 `pnpm build` typechecks and builds for production.
 
@@ -38,10 +46,20 @@ Open `/ventes`. No backend needed — `src/mock/` implements `tanstack-pagekit`'
 
 The 740 is feature-only code; the plumbing it leans on (`useListPage`, `createResource*`, `FieldDescriptor`/`useFieldOptions`/`renderColumn`, `useDetailPage`, `useMasterDetailForm`) lives once in [`tanstack-pagekit`](../tanstack-pagekit) (~1300 lines total across ALL its modules) and is reused by every feature, not copy-pasted per entity like `use-table-url-state.ts`/`resource-data-table.tsx` effectively are today (Products/Customers/Users each wire their own `*-table.tsx` against the same pattern).
 
+## App shell (ported for manual comparison)
+
+Same structural pieces as `poc-vente-front`, adapted to what this POC actually implements (Ventes only — no Products/Users/Roles/Settings pages, so the sidebar and permission set are trimmed accordingly):
+
+- `components/ui/sidebar.tsx` + `components/layout/{app-sidebar,nav-group,nav-user,team-switcher,header,authenticated-layout}.tsx` + `data/sidebar-data.ts` — same collapsible sidebar primitive and composition as the original (minus the collapsed-icon dropdown variant and mobile close-on-navigate, kept out for scope).
+- `stores/auth-store.ts` + `lib/api-client.ts` — same zustand store and axios instance (JWT access/refresh cookies, 401 → refresh → retry interceptor) as `poc-vente-front`, byte-for-byte where the logic didn't need to change.
+- `context/theme-provider.tsx` (light/dark/system, cookie-persisted) + `context/layout-provider.tsx` (sidebar variant/collapsible cookie).
+- `features/auth/{auth-layout,sign-in-page,api}.tsx` — real `/api/token/` login + `/api/auth/me/`, same `Card`/`AuthLayout` shell. Simplified: plain controlled inputs instead of react-hook-form + zod (kept out of this POC's dependency set), no social-login buttons.
+- `router.tsx` — same split as `_authenticated/route.tsx`: a `beforeLoad` guard redirects to `/sign-in` without a session, an `AuthenticatedLayout` parent route renders the sidebar/header shell around every real page.
+
+Not ported (cosmetic/peripheral, not what the library touches): the command-palette `Search`, `ConfigDrawer`, `NavigationProgress` bar, and the collapsed-sidebar dropdown submenu variant.
+
 ## Known limitations
 
-- **Mock backend, not Django.** `src/mock/http-client.ts` is in-memory (resets on page reload / Vite HMR of that file) — it mimics DRF's paginated shape and query params closely enough to exercise the library end-to-end, but isn't the real API.
-- **No app shell replicated.** The sidebar, auth, team switcher, theme/font/direction providers, and the rest of poc-vente-front's admin chrome are out of scope — only the Ventes pages themselves (which is what the library actually touches) were rebuilt, with a minimal header instead.
 - **No client-side validation messages.** poc-vente-front's form uses zod + `@hookform/resolvers`; this POC keeps the happy path working (required-ish fields still need real values to submit meaningfully) but doesn't port per-field error messages — out of scope for what the library itself demonstrates.
 - **Column header sorting UI is app-side, by design.** `renderColumn`'s default `header` is a plain label string, not a sortable dropdown — the library stays UI-agnostic (see `tanstack-pagekit`'s `field` module design docs), so `ventes-columns.tsx` plugs in `DataTableColumnHeader` itself via `columnDef.header`, same as it plugs in `renderLink` for the clickable `customer` column.
 - **Minimal customer detail page.** `/customers/$id` exists only as a link target for the clickable `customer` field — not a full CRUD page.
@@ -49,6 +67,12 @@ The 740 is feature-only code; the plumbing it leans on (`useListPage`, `createRe
 ## Bug found in tanstack-pagekit while building this
 
 `useMasterDetailForm`'s TypeScript types hardcoded the lines array field name to `'lignes'` even though the runtime already supported a configurable `linesFieldName`. Naming the field `lines` (as this showcase does) failed to typecheck. Fixed in `tanstack-pagekit` (commit `c0b034e`) by making the field name a proper generic type parameter.
+
+## Demo data
+
+Seeded directly on the Django backend (not committed as a migration — a one-off `manage.py shell` script), independent of this repo:
+- User `admin` / `admin1234`, role `admin` (all permissions).
+- A few customers, products (with categories), and 3 ventes with lines/livraisons/paiements, so the list/detail pages aren't empty on first login.
 
 ## Links
 

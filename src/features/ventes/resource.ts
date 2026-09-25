@@ -1,6 +1,6 @@
 import { createResourceApi, createResourceHooks } from 'tanstack-pagekit'
 import { toast } from '@/lib/toast'
-import { mockHttpClient } from '@/mock/http-client'
+import { httpClient } from '@/lib/http-client'
 import type { Vente, VenteForm } from '@/features/types'
 
 function toPayload(values: VenteForm) {
@@ -15,7 +15,7 @@ function toPayload(values: VenteForm) {
   }
 }
 
-export const ventesApi = createResourceApi<Vente, VenteForm>(mockHttpClient, '/api/ventes/', { toPayload })
+export const ventesApi = createResourceApi<Vente, VenteForm>(httpClient, '/api/ventes/', { toPayload })
 
 export const {
   useList: useVentes,
