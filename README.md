@@ -25,10 +25,13 @@ pnpm dev
 
 ## What's demonstrated
 
-- **List page** (`/ventes`) — pagination and the status filter go to the mock backend (server-side); sorting is client-side on the loaded page via TanStack Table (`getSortedRowModel`), per this POC's brief. One hook (`useListPage`) replaces `use-table-url-state.ts` + `resource-data-table.tsx` + the per-feature wiring in `ventes-table.tsx`.
-- **Detail page with tabs** (`/ventes/$id`) — an addition beyond poc-vente-front, which has no detail route for Ventes (only list + form). Demonstrates `useDetailPage`/`useTabState` (active tab persisted in the URL) and a "Lignes" tab using **TanStack Table** too, via `useClientTable`.
-- **Declare a field once** (`src/features/ventes/fields.tsx`) — the same `FieldDescriptor` (e.g. `customer`, `clickable: true`) feeds the list column (`renderColumn`) **and** the detail header field (`renderDetailField`), instead of being redeclared in each place.
-- **Master/detail form** (`/ventes/saisie`, `/ventes/saisie/$id`) — `useMasterDetailForm` on **TanStack Form**, with a server-search autocomplete for `customer` and a per-line product autocomplete whose selection cascades into `unit_price` (`fillsFields`).
+- **List page** (`/ventes`, `/products`, `/customers`, `/roles`, `/users`) — pagination and filters go to the real Django backend (server-side); sorting is client-side on the loaded page via TanStack Table (`getSortedRowModel`), per this POC's brief. One hook (`useListPage`) replaces `use-table-url-state.ts` + `resource-data-table.tsx` + the per-feature `*-table.tsx` wiring.
+- **Detail page with tabs** (`/ventes/$id`) — an addition beyond poc-vente-front, which has no detail route for Ventes (only list + form). Demonstrates `useDetailPage`/`useTabState` (active tab persisted in the URL) and three tabs all using **TanStack Table**: "Lignes" (`useClientTable`), "Livraisons" and "Paiements" (`useListPage`-style calls filtered by `vente`), giving those two backend models real presence in the frontend.
+- **"NOUVELLE FACTURE" form** (`/ventes/saisie`, `/ventes/saisie/$id`) — reproduces the exact ASCII mockup from `Concetion_moteur/lib-page-builder`'s conception docs: Client/Date/Devise/Remise globale header, a LIGNES table (Produit/Qté/P.U./Remise/TVA + delete), and a right-aligned Total HT/Remise globale/TVA/TOTAL footer computed **live client-side** (`features/ventes/totals.ts`) using the exact same formula as the backend's `Vente.recalculate_total` — verified end-to-end to match what the server persists after save.
+- **Declare a field once** (`src/features/*/fields.tsx`) — the same `FieldDescriptor` (e.g. `customer`, `clickable: true`) feeds the list column (`renderColumn`) **and** the detail header field (`renderDetailField`), instead of being redeclared in each place.
+- **Master/detail form** on **TanStack Form** (`useMasterDetailForm`), with server-search autocompletes (`customer`, per-line `product`) and a `fillsFields` cascade (product selection fills `unit_price`).
+- **Products / Customers / Roles** — full list + create/edit forms (`useForm` from `@tanstack/react-form` for the non-array cases, same `RenderFormField`/`FieldDescriptor` pattern). Roles' form includes a permission matrix (`features/roles/permission-matrix.tsx`, ported from `roles-permission-matrix.tsx`) — one checkbox per (model × add/view/change/delete) codename, matching `HasRolePermission` on the backend.
+- **Users** — list + a "Manage roles" dialog calling the backend's `assign_role`/`remove_role` custom actions. No create/edit form: Django's `UserViewSet` is a `ReadOnlyModelViewSet`, so this page only builds what the real API actually supports.
 
 ## File-by-file correspondence
 
@@ -48,7 +51,7 @@ The 740 is feature-only code; the plumbing it leans on (`useListPage`, `createRe
 
 ## App shell (ported for manual comparison)
 
-Same structural pieces as `poc-vente-front`, adapted to what this POC actually implements (Ventes only — no Products/Users/Roles/Settings pages, so the sidebar and permission set are trimmed accordingly):
+Same structural pieces as `poc-vente-front` (Settings/Help Center/Error pages are the only ones still out of scope — everything else the sidebar links to is a real page here):
 
 - `components/ui/sidebar.tsx` + `components/layout/{app-sidebar,nav-group,nav-user,team-switcher,header,authenticated-layout}.tsx` + `data/sidebar-data.ts` — same collapsible sidebar primitive and composition as the original (minus the collapsed-icon dropdown variant and mobile close-on-navigate, kept out for scope).
 - `stores/auth-store.ts` + `lib/api-client.ts` — same zustand store and axios instance (JWT access/refresh cookies, 401 → refresh → retry interceptor) as `poc-vente-front`, byte-for-byte where the logic didn't need to change.
@@ -61,12 +64,18 @@ Not ported (cosmetic/peripheral, not what the library touches): the command-pale
 ## Known limitations
 
 - **No client-side validation messages.** poc-vente-front's form uses zod + `@hookform/resolvers`; this POC keeps the happy path working (required-ish fields still need real values to submit meaningfully) but doesn't port per-field error messages — out of scope for what the library itself demonstrates.
-- **Column header sorting UI is app-side, by design.** `renderColumn`'s default `header` is a plain label string, not a sortable dropdown — the library stays UI-agnostic (see `tanstack-pagekit`'s `field` module design docs), so `ventes-columns.tsx` plugs in `DataTableColumnHeader` itself via `columnDef.header`, same as it plugs in `renderLink` for the clickable `customer` column.
-- **Minimal customer detail page.** `/customers/$id` exists only as a link target for the clickable `customer` field — not a full CRUD page.
+- **Column header sorting UI is app-side, by design.** `renderColumn`'s default `header` is a plain label string, not a sortable dropdown — the library stays UI-agnostic (see `tanstack-pagekit`'s `field` module design docs), so `*-columns.tsx` plugs in `DataTableColumnHeader` itself via `columnDef.header`, same as it plugs in `renderLink` for clickable columns.
+- **`FieldDescriptor.type` has no `'boolean'` variant.** `is_active` on Product/Customer is a plain shadcn `Checkbox` bound directly to `form.Field`, not routed through `RenderFormField`/`FieldDescriptor` — a real gap in the field module's type union, not something worth changing `tanstack-pagekit` for on this POC's timeline.
+- **Minimal customer detail page.** `/customers/$id` exists only as a link target for the clickable `customer` field — not a full CRUD page (customers now also have a real list+form at `/customers`, `/customers/saisie`).
+- **Settings / Help Center / Error pages** are not ported — they're generic template pages in the original, not something the library touches.
 
-## Bug found in tanstack-pagekit while building this
+## Browser-automation note
 
-`useMasterDetailForm`'s TypeScript types hardcoded the lines array field name to `'lignes'` even though the runtime already supported a configurable `linesFieldName`. Naming the field `lines` (as this showcase does) failed to typecheck. Fixed in `tanstack-pagekit` (commit `c0b034e`) by making the field name a proper generic type parameter.
+Radix `Popover`/`Command` comboboxes (customer/product/category selects) don't reliably open under this environment's coordinate-simulated mouse clicks — confirmed to be a tool/CDP quirk, not an app bug: `document.querySelector('[role="combobox"]').click()` (a real DOM click) opens them correctly every time, while the `computer` tool's simulated click does not. All verification in this README was done that way.
+
+## Bugs found in tanstack-pagekit while building this
+
+- `useMasterDetailForm`'s TypeScript types hardcoded the lines array field name to `'lignes'` even though the runtime already supported a configurable `linesFieldName`. Naming the field `lines` (as this showcase does) failed to typecheck. Fixed (commit `c0b034e`) by making the field name a proper generic type parameter.
 
 ## Demo data
 

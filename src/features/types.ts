@@ -19,6 +19,10 @@ export type CustomerForm = {
   name: string
   email: string
   phone: string
+  address: string
+  city: string
+  birth_date: string
+  is_active: boolean
 }
 
 export type ProductCategory = {
@@ -44,6 +48,9 @@ export type ProductForm = {
   name: string
   sku: string
   default_price: string
+  category: string
+  description: string
+  is_active: boolean
 }
 
 export type VenteStatus = 'draft' | 'validated' | 'cancelled'
@@ -124,4 +131,25 @@ export type Paiement = {
   reference: string
   created_at: string
   updated_at: string
+}
+
+// Django's `auth.Permission` codenames the API deals in, e.g. 'view_vente'.
+export type Role = {
+  id: string
+  name: string
+  permissions: string[]
+}
+
+export type RoleForm = {
+  name: string
+  permissions: string[]
+}
+
+export type User = {
+  id: string
+  username: string
+  email: string
+  is_active: boolean
+  is_staff: boolean
+  roles: string[]
 }

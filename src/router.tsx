@@ -7,6 +7,13 @@ import { fetchMe } from '@/features/auth/api'
 import { SignInPage } from '@/features/auth/sign-in-page'
 import { HomePage } from './home-page'
 import { CustomerDetailPage } from '@/features/customers/customer-detail-page'
+import { CustomersFormPage } from '@/features/customers/customers-form-page'
+import { CustomersListPage } from '@/features/customers/customers-list-page'
+import { ProductsFormPage } from '@/features/products/products-form-page'
+import { ProductsListPage } from '@/features/products/products-list-page'
+import { RolesFormPage } from '@/features/roles/roles-form-page'
+import { RolesListPage } from '@/features/roles/roles-list-page'
+import { UsersListPage } from '@/features/users/users-list-page'
 import { VentesDetailPage } from '@/features/ventes/ventes-detail-page'
 import { VentesFormPage } from '@/features/ventes/ventes-form-page'
 import { VentesListPage } from '@/features/ventes/ventes-list-page'
@@ -89,9 +96,90 @@ const customerDetailRoute = createRoute({
   component: CustomerDetailPage,
 })
 
+const customersListRoute = createRoute({
+  getParentRoute: () => authenticatedRoute,
+  path: '/customers',
+  component: CustomersListPage,
+  validateSearch: (search: Record<string, unknown>) => search,
+})
+
+const customersNewRoute = createRoute({
+  getParentRoute: () => authenticatedRoute,
+  path: '/customers/saisie',
+  component: CustomersFormPage,
+})
+
+const customersEditRoute = createRoute({
+  getParentRoute: () => authenticatedRoute,
+  path: '/customers/saisie/$id',
+  component: CustomersFormPage,
+})
+
+const productsListRoute = createRoute({
+  getParentRoute: () => authenticatedRoute,
+  path: '/products',
+  component: ProductsListPage,
+  validateSearch: (search: Record<string, unknown>) => search,
+})
+
+const productsNewRoute = createRoute({
+  getParentRoute: () => authenticatedRoute,
+  path: '/products/saisie',
+  component: ProductsFormPage,
+})
+
+const productsEditRoute = createRoute({
+  getParentRoute: () => authenticatedRoute,
+  path: '/products/saisie/$id',
+  component: ProductsFormPage,
+})
+
+const rolesListRoute = createRoute({
+  getParentRoute: () => authenticatedRoute,
+  path: '/roles',
+  component: RolesListPage,
+  validateSearch: (search: Record<string, unknown>) => search,
+})
+
+const rolesNewRoute = createRoute({
+  getParentRoute: () => authenticatedRoute,
+  path: '/roles/saisie',
+  component: RolesFormPage,
+})
+
+const rolesEditRoute = createRoute({
+  getParentRoute: () => authenticatedRoute,
+  path: '/roles/saisie/$id',
+  component: RolesFormPage,
+})
+
+const usersListRoute = createRoute({
+  getParentRoute: () => authenticatedRoute,
+  path: '/users',
+  component: UsersListPage,
+  validateSearch: (search: Record<string, unknown>) => search,
+})
+
 const routeTree = rootRoute.addChildren([
   signInRoute,
-  authenticatedRoute.addChildren([homeRoute, ventesListRoute, ventesNewRoute, ventesEditRoute, ventesDetailRoute, customerDetailRoute]),
+  authenticatedRoute.addChildren([
+    homeRoute,
+    ventesListRoute,
+    ventesNewRoute,
+    ventesEditRoute,
+    ventesDetailRoute,
+    customersListRoute,
+    customersNewRoute,
+    customersEditRoute,
+    customerDetailRoute,
+    productsListRoute,
+    productsNewRoute,
+    productsEditRoute,
+    rolesListRoute,
+    rolesNewRoute,
+    rolesEditRoute,
+    usersListRoute,
+  ]),
 ])
 
 export const router = createRouter({ routeTree })
