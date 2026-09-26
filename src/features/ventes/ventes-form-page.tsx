@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Main } from '@/components/layout/main'
 import { RenderFormField } from '@/components/fields/render-form-field'
 import type { VenteForm, VenteLineForm } from '@/features/types'
-import { computeVenteBreakdown } from './totals'
+import { computeVenteBreakdown, type VenteBreakdown } from './totals'
 import { useCreateVente, useUpdateVente, useVente } from './resource'
 import {
   CUSTOMER_FORM_FIELD,
@@ -38,10 +38,12 @@ const emptyValues: VenteForm = {
  * saisie-saisiemultiple.md) as closely as the shadcn/ui primitives allow:
  * header fields (Client/Date/Devise/Remise globale), a LIGNES table
  * (Produit/Qté/P.U./Remise/TVA + delete), then a right-aligned totals
- * footer (Total HT / Remise globale / TVA / TOTAL) computed live client-side
- * via `computeVenteBreakdown` — same formula as the backend's
- * `Vente.recalculate_total`, so the preview matches what the server returns
- * on save.
+ * footer (Total HT / Remise globale / TVA / TOTAL). The breakdown is wired
+ * through `useMasterDetailForm`'s own `computed.breakdown` option (not a
+ * bespoke `form.Subscribe` calling app code on the side) — `totals.ts` only
+ * holds the formula itself (same one as the backend's
+ * `Vente.recalculate_total`, so the live preview matches what the server
+ * returns on save), the *reactive wiring* to the form is the library's.
  */
 export function VentesFormPage() {
   const { id } = useParams({ strict: false }) as { id?: string }
@@ -71,10 +73,18 @@ export function VentesFormPage() {
         }
       : emptyValues
 
-  const { form, addLine, removeLine } = useMasterDetailForm<Omit<VenteForm, 'lines'>, VenteLineForm, 'lines'>({
+  const { form, addLine, removeLine, breakdown } = useMasterDetailForm<
+    Omit<VenteForm, 'lines'>,
+    VenteLineForm,
+    'lines',
+    VenteBreakdown
+  >({
     defaultValues,
     linesFieldName: 'lines',
     defaultLine: emptyLine,
+    computed: {
+      breakdown: (lines, values) => computeVenteBreakdown(lines, values.discount_percent),
+    },
     onSubmit: async (values) => {
       if (isEdit && currentRow) {
         await updateVente.mutateAsync({ id: currentRow.id, payload: values as VenteForm })
@@ -179,7 +189,12 @@ export function VentesFormPage() {
               </Button>
             </div>
 
-            {/* --- Totals: computed live, same formula as the backend --- */}
+            {/* --- Totals: `breakdown()` reads current form values on every
+                call, so it needs a reactive trigger — `form.Subscribe`
+                provides that (re-renders this block on lines/discount/
+                currency changes), but the number themselves come from
+                `useMasterDetailForm`'s `computed.breakdown`, not from
+                calling `computeVenteBreakdown` directly. --- */}
             <form.Subscribe
               selector={(state) => ({
                 lines: state.values.lines,
@@ -188,25 +203,25 @@ export function VentesFormPage() {
               })}
             >
               {(sel) => {
-                const breakdown = computeVenteBreakdown(sel.lines, sel.discountPercent)
+                const totals = breakdown() ?? { subtotalHt: 0, discountAmount: 0, tvaAmount: 0, total: 0 }
                 const fmt = (n: number) => `${new Intl.NumberFormat('fr-FR').format(n)} ${sel.currency}`
                 return (
                   <div className='ms-auto flex w-full max-w-xs flex-col gap-1.5 border-t pt-4 text-sm sm:w-72'>
                     <div className='flex justify-between'>
                       <span className='text-muted-foreground'>Total HT</span>
-                      <span>{fmt(breakdown.subtotalHt)}</span>
+                      <span>{fmt(totals.subtotalHt)}</span>
                     </div>
                     <div className='flex justify-between'>
                       <span className='text-muted-foreground'>Remise globale</span>
-                      <span>-{fmt(breakdown.discountAmount)}</span>
+                      <span>-{fmt(totals.discountAmount)}</span>
                     </div>
                     <div className='flex justify-between'>
                       <span className='text-muted-foreground'>TVA</span>
-                      <span>{fmt(breakdown.tvaAmount)}</span>
+                      <span>{fmt(totals.tvaAmount)}</span>
                     </div>
                     <div className='flex justify-between border-t pt-1.5 text-base font-bold'>
                       <span>TOTAL</span>
-                      <span>{fmt(breakdown.total)}</span>
+                      <span>{fmt(totals.total)}</span>
                     </div>
                   </div>
                 )
