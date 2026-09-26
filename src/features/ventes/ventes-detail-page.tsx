@@ -10,11 +10,13 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { useProducts } from '@/features/products/resource'
 import { useCustomers } from '@/features/customers/resource'
-import type { Vente, VenteLigne } from '@/features/types'
+import { useLivraisonsPage } from '@/features/livraisons/resource'
+import { usePaiementsPage } from '@/features/paiements/resource'
+import type { Livraison, Paiement, Vente, VenteLigne } from '@/features/types'
 import { useVente } from './resource'
-import { CUSTOMER_FIELD, ID_FIELD, STATUS_FIELD, TOTAL_FIELD, customerOptions } from './fields'
+import { CURRENCY_FIELD, CUSTOMER_FIELD, ID_FIELD, STATUS_FIELD, TOTAL_FIELD, customerOptions } from './fields'
 
-const TABS = ['general', 'lignes'] as const
+const TABS = ['general', 'lignes', 'livraisons', 'paiements'] as const
 
 const renderLink = ({ to, params, children }: { to: string; params?: Record<string, string>; children: unknown }) => (
   <Link to={to} params={params}>
@@ -65,7 +67,7 @@ export function VentesDetailPage() {
     )
   }
 
-  const headerFields = [ID_FIELD, CUSTOMER_FIELD, STATUS_FIELD, TOTAL_FIELD].map((descriptor) =>
+  const headerFields = [ID_FIELD, CUSTOMER_FIELD, STATUS_FIELD, CURRENCY_FIELD, TOTAL_FIELD].map((descriptor) =>
     renderDetailField(descriptor, entity, {
       resolvedOptions: customerOptions(customerNameById),
       renderLink,
@@ -101,6 +103,8 @@ export function VentesDetailPage() {
           <TabsTrigger value='lignes'>
             Lignes <Badge variant='secondary' className='ms-1'>{entity.lines.length}</Badge>
           </TabsTrigger>
+          <TabsTrigger value='livraisons'>Livraisons</TabsTrigger>
+          <TabsTrigger value='paiements'>Paiements</TabsTrigger>
         </TabsList>
         <TabsContent value='general' className='pt-4 text-sm text-muted-foreground'>
           Created {new Date(entity.created_at).toLocaleString()} · Updated{' '}
@@ -108,6 +112,12 @@ export function VentesDetailPage() {
         </TabsContent>
         <TabsContent value='lignes' className='pt-4'>
           {isTabActive('lignes') && <LignesTab lines={entity.lines} />}
+        </TabsContent>
+        <TabsContent value='livraisons' className='pt-4'>
+          {isTabActive('livraisons') && <LivraisonsTab venteId={entity.id} />}
+        </TabsContent>
+        <TabsContent value='paiements' className='pt-4'>
+          {isTabActive('paiements') && <PaiementsTab venteId={entity.id} />}
         </TabsContent>
       </Tabs>
     </Main>
@@ -138,13 +148,90 @@ function LignesTab({ lines }: { lines: VenteLigne[] }) {
   // page's table but via `useClientTable` instead of `useListPage`.
   const { table } = useClientTable({ data: lines, columns, paginated: false })
 
+  return <RenderTanstackTable table={table} columnCount={columns.length} />
+}
+
+const LIVRAISON_STATUS_LABEL: Record<Livraison['status'], string> = {
+  pending: 'En attente',
+  shipped: 'Expédiée',
+  delivered: 'Livrée',
+}
+
+function LivraisonsTab({ venteId }: { venteId: string }) {
+  const { data, isLoading } = useLivraisonsPage({ page: 1, pageSize: 50, filters: { vente: venteId } })
+
+  const columns: ColumnDef<Livraison>[] = useMemo(
+    () => [
+      renderColumn({
+        name: 'status',
+        label: 'Statut',
+        type: 'select',
+        options: Object.entries(LIVRAISON_STATUS_LABEL).map(([value, label]) => ({ value, label })),
+      }),
+      renderColumn({ name: 'delivery_date', label: 'Date de livraison', type: 'date' }),
+      renderColumn({ name: 'address', label: 'Adresse', type: 'text' }),
+      renderColumn({ name: 'tracking_number', label: 'N° de suivi', type: 'text' }),
+    ],
+    []
+  )
+
+  // Every tab's table goes through TanStack Table, same as the top-level
+  // list page — here via `useClientTable` since a vente's own deliveries
+  // are already a small, fully-loaded set (no server pagination needed).
+  const { table } = useClientTable({ data: data?.results ?? [], columns, paginated: false })
+
+  if (isLoading) return <Loader2 className='animate-spin' />
+  return <RenderTanstackTable table={table} columnCount={columns.length} />
+}
+
+const PAIEMENT_METHOD_LABEL: Record<Paiement['method'], string> = {
+  cash: 'Espèces',
+  card: 'Carte',
+  transfer: 'Virement',
+}
+
+function PaiementsTab({ venteId }: { venteId: string }) {
+  const { data, isLoading } = usePaiementsPage({ page: 1, pageSize: 50, filters: { vente: venteId } })
+
+  const columns: ColumnDef<Paiement>[] = useMemo(
+    () => [
+      renderColumn({ name: 'amount', label: 'Montant', type: 'number' }),
+      renderColumn({
+        name: 'method',
+        label: 'Méthode',
+        type: 'select',
+        options: Object.entries(PAIEMENT_METHOD_LABEL).map(([value, label]) => ({ value, label })),
+      }),
+      renderColumn({ name: 'paid_at', label: 'Date', type: 'datetime' }),
+      renderColumn({ name: 'reference', label: 'Référence', type: 'text' }),
+    ],
+    []
+  )
+
+  const { table } = useClientTable({ data: data?.results ?? [], columns, paginated: false })
+
+  if (isLoading) return <Loader2 className='animate-spin' />
+  return <RenderTanstackTable table={table} columnCount={columns.length} />
+}
+
+/** Shared TanStack Table renderer for the three tabs above — no logic, purely `flexRender`. */
+function RenderTanstackTable({
+  table,
+  columnCount,
+}: {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  table: any
+  columnCount: number
+}) {
   return (
     <div className='overflow-hidden rounded-md border'>
       <Table>
         <TableHeader>
-          {table.getHeaderGroups().map((headerGroup) => (
+          {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+          {table.getHeaderGroups().map((headerGroup: any) => (
             <TableRow key={headerGroup.id}>
-              {headerGroup.headers.map((header) => (
+              {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+              {headerGroup.headers.map((header: any) => (
                 <TableHead key={header.id}>
                   {header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}
                 </TableHead>
@@ -153,13 +240,22 @@ function LignesTab({ lines }: { lines: VenteLigne[] }) {
           ))}
         </TableHeader>
         <TableBody>
-          {table.getRowModel().rows.map((row) => (
+          {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+          {table.getRowModel().rows.map((row: any) => (
             <TableRow key={row.id}>
-              {row.getVisibleCells().map((cell) => (
+              {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+              {row.getVisibleCells().map((cell: any) => (
                 <TableCell key={cell.id}>{flexRender(cell.column.columnDef.cell, cell.getContext())}</TableCell>
               ))}
             </TableRow>
           ))}
+          {table.getRowModel().rows.length === 0 && (
+            <TableRow>
+              <TableCell colSpan={columnCount} className='h-16 text-center text-muted-foreground'>
+                No results.
+              </TableCell>
+            </TableRow>
+          )}
         </TableBody>
       </Table>
     </div>

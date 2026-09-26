@@ -49,17 +49,23 @@ export const TOTAL_FIELD: FieldDescriptor<Vente> = {
   type: 'text',
 }
 
+export const CURRENCY_FIELD: FieldDescriptor<Vente> = {
+  name: 'currency',
+  label: 'Devise',
+  type: 'text',
+}
+
 export function customerOptions(customerNameById: Record<string, string>): FieldOption[] {
   return Object.entries(customerNameById).map(([value, label]) => ({ value, label }))
 }
 
-// --- Form field descriptors (customer + line select-autocompletes) ---
+// --- Form field descriptors: header (parent) fields of "NOUVELLE FACTURE" ---
 
 export const CUSTOMER_FORM_FIELD: FieldDescriptor<VenteForm> = {
   name: 'customer',
-  label: 'Customer',
+  label: 'Client',
   type: 'select',
-  placeholder: 'Search a customer...',
+  placeholder: 'Rechercher un client...',
   search: {
     fetchOptions: (query) =>
       customersApi
@@ -69,13 +75,45 @@ export const CUSTOMER_FORM_FIELD: FieldDescriptor<VenteForm> = {
   },
 }
 
+// Django's `Vente` has no free-standing "invoice date" (only
+// `expected_delivery_date`, `created_at`/`updated_at`) — this form reuses
+// `expected_delivery_date` under the mockup's "Date" label, since it's the
+// only editable date field the backend actually exposes on Vente.
+export const DATE_FORM_FIELD: FieldDescriptor<VenteForm> = {
+  name: 'expected_delivery_date',
+  label: 'Date',
+  type: 'date',
+}
+
+const CURRENCY_OPTIONS: FieldOption[] = [
+  { label: 'MGA', value: 'MGA' },
+  { label: 'EUR', value: 'EUR' },
+  { label: 'USD', value: 'USD' },
+]
+
+export const CURRENCY_FORM_FIELD: FieldDescriptor<VenteForm> = {
+  name: 'currency',
+  label: 'Devise',
+  type: 'select',
+  options: CURRENCY_OPTIONS,
+}
+
+export const GLOBAL_DISCOUNT_FORM_FIELD: FieldDescriptor<VenteForm> = {
+  name: 'discount_percent',
+  label: 'Remise globale',
+  type: 'number',
+  placeholder: '0',
+}
+
+// --- Form field descriptors: one line of "LIGNES" (Produit / Qté / P.U. / Remise / TVA) ---
+
 export function lineFormFields(index: number): FieldDescriptor<VenteForm>[] {
   return [
     {
       name: `lines[${index}].product`,
-      label: 'Product',
+      label: 'Produit',
       type: 'select',
-      placeholder: 'Search a product...',
+      placeholder: 'Rechercher un produit...',
       search: {
         fetchOptions: (query) =>
           productsApi
@@ -87,12 +125,14 @@ export function lineFormFields(index: number): FieldDescriptor<VenteForm>[] {
       // Selecting a product fills the line's unit price with its default
       // price — same cascade as poc-vente-front's `ventes-form.tsx`, ported
       // from react-hook-form paths (`lines.${index}.unit_price`) to
-      // TanStack Form array paths (`lignes[${index}].unit_price`).
+      // TanStack Form array paths (`lines[${index}].unit_price`).
       fillsFields: (selected) => ({
         [`lines[${index}].unit_price`]: (selected.data as Product).default_price,
       }),
     },
-    { name: `lines[${index}].quantity`, label: 'Quantity', type: 'number', placeholder: 'Qty' },
-    { name: `lines[${index}].unit_price`, label: 'Unit price', type: 'number', placeholder: 'Unit price' },
+    { name: `lines[${index}].quantity`, label: 'Qté', type: 'number', placeholder: '1' },
+    { name: `lines[${index}].unit_price`, label: 'P.U.', type: 'number', placeholder: '0.00' },
+    { name: `lines[${index}].discount_percent`, label: 'Remise', type: 'number', placeholder: '0' },
+    { name: `lines[${index}].tva_rate`, label: 'TVA', type: 'number', placeholder: '20' },
   ]
 }
