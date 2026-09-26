@@ -3,6 +3,7 @@ import { Link, useNavigate, useParams, useSearch } from '@tanstack/react-router'
 import { flexRender, type ColumnDef } from '@tanstack/react-table'
 import { Loader2 } from 'lucide-react'
 import { renderDetailField, renderColumn, useClientTable, useDetailPage, type NavigateFn } from 'tanstack-pagekit'
+import { renderLink } from '@/components/fields/render-link'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Main } from '@/components/layout/main'
@@ -17,12 +18,6 @@ import { useVente } from './resource'
 import { CURRENCY_FIELD, CUSTOMER_FIELD, ID_FIELD, STATUS_FIELD, TOTAL_FIELD, customerOptions } from './fields'
 
 const TABS = ['lignes', 'livraisons', 'paiements'] as const
-
-const renderLink = ({ to, params, children }: { to: string; params?: Record<string, string>; children: unknown }) => (
-  <Link to={to} params={params}>
-    {children as React.ReactNode}
-  </Link>
-)
 
 /**
  * Tabbed detail page — an addition beyond poc-vente-front (which has no

@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react'
-import { Link, useNavigate, useSearch } from '@tanstack/react-router'
+import { useNavigate, useSearch } from '@tanstack/react-router'
 import { flexRender, type ColumnDef, type HeaderContext } from '@tanstack/react-table'
 import { Loader2 } from 'lucide-react'
 import { renderColumn, useListPage, type FieldDescriptor, type NavigateFn } from 'tanstack-pagekit'
@@ -9,16 +9,11 @@ import { cn } from '@/lib/utils'
 import { Main } from '@/components/layout/main'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { DataTableColumnHeader, DataTablePagination, DataTableToolbar } from '@/components/data-table'
+import { renderLink } from '@/components/fields/render-link'
 import type { User } from '@/features/types'
 import { useRoles } from '@/features/roles/resource'
 import { useUsersPage } from './resource'
 import { UsersRolesDialog } from './users-roles-dialog'
-
-const renderLink = ({ to, params, children }: { to: string; params?: Record<string, string>; children: unknown }) => (
-  <Link to={to} params={params}>
-    {children as React.ReactNode}
-  </Link>
-)
 
 const USERNAME_FIELD: FieldDescriptor<User> = {
   name: 'username',

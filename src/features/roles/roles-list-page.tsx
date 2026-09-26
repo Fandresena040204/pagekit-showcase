@@ -4,18 +4,13 @@ import { flexRender, type ColumnDef, type HeaderContext } from '@tanstack/react-
 import { Loader2 } from 'lucide-react'
 import { renderColumn, useListPage, type FieldDescriptor, type NavigateFn } from 'tanstack-pagekit'
 import { cn } from '@/lib/utils'
+import { renderLink } from '@/components/fields/render-link'
 import { Button } from '@/components/ui/button'
 import { Main } from '@/components/layout/main'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { DataTableColumnHeader, DataTablePagination, DataTableToolbar } from '@/components/data-table'
 import type { Role } from '@/features/types'
 import { useRolesPage } from './resource'
-
-const renderLink = ({ to, params, children }: { to: string; params?: Record<string, string>; children: unknown }) => (
-  <Link to={to} params={params}>
-    {children as React.ReactNode}
-  </Link>
-)
 
 const NAME_FIELD: FieldDescriptor<Role> = {
   name: 'name',
