@@ -16,7 +16,7 @@ import type { Livraison, Paiement, Vente, VenteLigne } from '@/features/types'
 import { useVente } from './resource'
 import { CURRENCY_FIELD, CUSTOMER_FIELD, ID_FIELD, STATUS_FIELD, TOTAL_FIELD, customerOptions } from './fields'
 
-const TABS = ['general', 'lignes', 'livraisons', 'paiements'] as const
+const TABS = ['lignes', 'livraisons', 'paiements'] as const
 
 const renderLink = ({ to, params, children }: { to: string; params?: Record<string, string>; children: unknown }) => (
   <Link to={to} params={params}>
@@ -47,7 +47,7 @@ export function VentesDetailPage() {
   const { entity, isLoading, isError, activeTab, setActiveTab, isTabActive } = useDetailPage<Vente>({
     router: { search, navigate },
     tabs: TABS,
-    defaultTab: 'general',
+    defaultTab: 'lignes',
     useEntity: () => useVente(id),
   })
 
@@ -95,21 +95,27 @@ export function VentesDetailPage() {
             <dd className='mt-0.5'>{field.value as React.ReactNode}</dd>
           </div>
         ))}
+        <div>
+          <dt className='text-xs text-muted-foreground'>Created</dt>
+          <dd className='mt-0.5'>{new Date(entity.created_at).toLocaleString()}</dd>
+        </div>
+        <div>
+          <dt className='text-xs text-muted-foreground'>Updated</dt>
+          <dd className='mt-0.5'>{new Date(entity.updated_at).toLocaleString()}</dd>
+        </div>
       </dl>
 
+      {/* No "Général" tab: created_at/updated_at moved into the header
+          above, Lignes/Livraisons/Paiements are the only tabs — one fewer
+          click to reach the content that actually needs a table. */}
       <Tabs value={activeTab} onValueChange={setActiveTab}>
         <TabsList>
-          <TabsTrigger value='general'>Général</TabsTrigger>
           <TabsTrigger value='lignes'>
             Lignes <Badge variant='secondary' className='ms-1'>{entity.lines.length}</Badge>
           </TabsTrigger>
           <TabsTrigger value='livraisons'>Livraisons</TabsTrigger>
           <TabsTrigger value='paiements'>Paiements</TabsTrigger>
         </TabsList>
-        <TabsContent value='general' className='pt-4 text-sm text-muted-foreground'>
-          Created {new Date(entity.created_at).toLocaleString()} · Updated{' '}
-          {new Date(entity.updated_at).toLocaleString()}
-        </TabsContent>
         <TabsContent value='lignes' className='pt-4'>
           {isTabActive('lignes') && <LignesTab lines={entity.lines} />}
         </TabsContent>

@@ -13,12 +13,14 @@ import { useVentesPage } from './resource'
 import { createVentesColumns } from './ventes-columns'
 
 /**
- * List page: pagination and the `status` filter are sent to the mock
- * backend (server-side, exactly like the real Django backend would be),
- * sorting stays client-side on the loaded page via TanStack Table
- * (`getSortedRowModel`, wired inside `useListPage`). Compare with
- * poc-vente-front's `ventes-table.tsx` + `resource-data-table.tsx`, which
- * this single component replaces.
+ * List page: pagination and filters are sent to the real Django backend
+ * (server-side), sorting stays client-side on the loaded page via TanStack
+ * Table (`getSortedRowModel`, wired inside `useListPage`). `searchMode:
+ * 'button'` means typing in the search box or toggling a checkbox filter
+ * only updates the table's own UI/URL state — the actual backend query
+ * only refreshes when the "Search" button (`search()`) is clicked, same
+ * "popup filter, committed on Search" UX as poc-vente-front's
+ * `ventes-table.tsx` (`appliedFilters` state there).
  */
 export function VentesListPage() {
   const search = useSearch({ strict: false }) as Record<string, unknown>
@@ -31,13 +33,37 @@ export function VentesListPage() {
   )
   const columns = useMemo(() => createVentesColumns(customerNameById), [customerNameById])
 
-  const { table, isLoading, isError } = useListPage({
+  const { table, isLoading, isError, search: runSearch } = useListPage({
     router: { search, navigate },
     resource: { useListPage: useVentesPage },
     columns,
     pagination: { defaultPageSize: 10 },
-    columnFilters: [{ columnId: 'status', searchKey: 'status', type: 'array' }],
+    globalFilter: { key: 'search' },
+    searchMode: 'button',
+    columnFilters: [
+      { columnId: 'status', searchKey: 'status', type: 'array' },
+      { columnId: 'customer', searchKey: 'customer', type: 'array' },
+      { columnId: 'total', type: 'range', minSearchKey: 'total_min', maxSearchKey: 'total_max' },
+    ],
+    buildFilters: (columnFilters) => {
+      const status = columnFilters.find((f) => f.id === 'status')?.value as string[] | undefined
+      const customer = columnFilters.find((f) => f.id === 'customer')?.value as string[] | undefined
+      const total = columnFilters.find((f) => f.id === 'total')?.value as
+        | { min?: string; max?: string }
+        | undefined
+      return {
+        status: status?.length ? status.join(',') : undefined,
+        customer: customer?.length ? customer.join(',') : undefined,
+        total_min: total?.min || undefined,
+        total_max: total?.max || undefined,
+      }
+    },
   })
+
+  const customerFacetOptions = useMemo(
+    () => Object.entries(customerNameById).map(([value, label]) => ({ label, value })),
+    [customerNameById]
+  )
 
   return (
     <Main className='flex flex-1 flex-col gap-4 sm:gap-6'>
@@ -61,6 +87,8 @@ export function VentesListPage() {
         <div className='flex flex-1 flex-col gap-4'>
           <DataTableToolbar
             table={table}
+            searchTitle='ID'
+            searchPlaceholder='Rechercher par ID...'
             filters={[
               {
                 columnId: 'status',
@@ -71,7 +99,14 @@ export function VentesListPage() {
                   { label: 'Cancelled', value: 'cancelled' },
                 ],
               },
+              {
+                columnId: 'customer',
+                title: 'Customer',
+                options: customerFacetOptions,
+              },
             ]}
+            rangeFilters={[{ columnId: 'total', title: 'Total', type: 'number' }]}
+            onSearch={runSearch}
           />
           <div className='overflow-hidden rounded-md border'>
             <Table>
@@ -98,11 +133,6 @@ export function VentesListPage() {
                         </TableCell>
                       ))}
                       <TableCell className='text-end'>
-                        <Button asChild variant='ghost' size='sm'>
-                          <Link to='/ventes/$id' params={{ id: row.original.id }}>
-                            View
-                          </Link>
-                        </Button>
                         <Button asChild variant='ghost' size='sm'>
                           <Link to='/ventes/saisie/$id' params={{ id: row.original.id }}>
                             Edit

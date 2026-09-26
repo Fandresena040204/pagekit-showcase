@@ -35,7 +35,7 @@ export function createVentesColumns(customerNameById: Record<string, string>): C
   const options: FieldOption[] = customerOptions(customerNameById)
 
   return [
-    renderColumn(ID_FIELD, { columnDef: { enableHiding: false, ...withSortableHeader(ID_FIELD) } }),
+    renderColumn(ID_FIELD, { renderLink, columnDef: { enableHiding: false, ...withSortableHeader(ID_FIELD) } }),
     renderColumn(CUSTOMER_FIELD, {
       resolvedOptions: options,
       renderLink,

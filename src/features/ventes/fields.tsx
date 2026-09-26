@@ -22,6 +22,8 @@ export const ID_FIELD: FieldDescriptor<Vente> = {
   name: 'id',
   label: 'ID',
   type: 'text',
+  clickable: true,
+  linkTo: (row) => ({ to: '/ventes/$id', params: { id: row.id } }),
 }
 
 export const CUSTOMER_FIELD: FieldDescriptor<Vente> = {

@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react'
-import { useNavigate, useSearch } from '@tanstack/react-router'
+import { Link, useNavigate, useSearch } from '@tanstack/react-router'
 import { flexRender, type ColumnDef, type HeaderContext } from '@tanstack/react-table'
 import { Loader2 } from 'lucide-react'
 import { renderColumn, useListPage, type FieldDescriptor, type NavigateFn } from 'tanstack-pagekit'
@@ -10,10 +10,23 @@ import { Main } from '@/components/layout/main'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { DataTableColumnHeader, DataTablePagination, DataTableToolbar } from '@/components/data-table'
 import type { User } from '@/features/types'
+import { useRoles } from '@/features/roles/resource'
 import { useUsersPage } from './resource'
 import { UsersRolesDialog } from './users-roles-dialog'
 
-const USERNAME_FIELD: FieldDescriptor<User> = { name: 'username', label: 'Username', type: 'text' }
+const renderLink = ({ to, params, children }: { to: string; params?: Record<string, string>; children: unknown }) => (
+  <Link to={to} params={params}>
+    {children as React.ReactNode}
+  </Link>
+)
+
+const USERNAME_FIELD: FieldDescriptor<User> = {
+  name: 'username',
+  label: 'Username',
+  type: 'text',
+  clickable: true,
+  linkTo: (row) => ({ to: '/users/$id', params: { id: row.id } }),
+}
 const EMAIL_FIELD: FieldDescriptor<User> = { name: 'email', label: 'Email', type: 'text' }
 
 function withSortableHeader<TRow>(descriptor: FieldDescriptor<TRow>): Pick<ColumnDef<TRow>, 'header'> {
@@ -35,14 +48,18 @@ export function UsersListPage() {
   const navigate = useNavigate() as unknown as NavigateFn
   const [rolesDialogUser, setRolesDialogUser] = useState<User | null>(null)
 
+  const { data: roles } = useRoles()
+  const roleOptions = useMemo(() => (roles ?? []).map((r) => ({ label: r.name, value: r.name })), [roles])
+
   const columns: ColumnDef<User>[] = useMemo(
     () => [
-      renderColumn(USERNAME_FIELD, { columnDef: withSortableHeader(USERNAME_FIELD) }),
+      renderColumn(USERNAME_FIELD, { renderLink, columnDef: withSortableHeader(USERNAME_FIELD) }),
       renderColumn(EMAIL_FIELD, {}),
       renderColumn(
         { name: 'roles', label: 'Roles', type: 'text' },
         {
           columnDef: {
+            id: 'roles',
             enableSorting: false,
             cell: ({ row }) => (
               <div className='flex flex-wrap gap-1'>
@@ -64,11 +81,18 @@ export function UsersListPage() {
     []
   )
 
-  const { table, isLoading, isError } = useListPage({
+  const { table, isLoading, isError, search: runSearch } = useListPage({
     router: { search, navigate },
     resource: { useListPage: useUsersPage },
     columns,
     pagination: { defaultPageSize: 10 },
+    globalFilter: { key: 'search' },
+    searchMode: 'button',
+    columnFilters: [{ columnId: 'roles', searchKey: 'roles', type: 'array' }],
+    buildFilters: (columnFilters) => {
+      const roleValues = columnFilters.find((f) => f.id === 'roles')?.value as string[] | undefined
+      return { roles: roleValues?.length ? roleValues.join(',') : undefined }
+    },
   })
 
   return (
@@ -86,7 +110,13 @@ export function UsersListPage() {
         <p className='text-destructive'>Failed to load users.</p>
       ) : (
         <div className='flex flex-1 flex-col gap-4'>
-          <DataTableToolbar table={table} searchTitle='Search' searchPlaceholder='Search username...' />
+          <DataTableToolbar
+            table={table}
+            searchTitle='Username'
+            searchPlaceholder='Search username...'
+            filters={[{ columnId: 'roles', title: 'Role', options: roleOptions }]}
+            onSearch={runSearch}
+          />
           <div className='overflow-hidden rounded-md border'>
             <Table>
               <TableHeader>

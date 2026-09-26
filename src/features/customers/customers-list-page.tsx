@@ -17,11 +17,13 @@ export function CustomersListPage() {
 
   const columns = useMemo(() => createCustomersColumns(), [])
 
-  const { table, isLoading, isError } = useListPage({
+  const { table, isLoading, isError, search: runSearch } = useListPage({
     router: { search, navigate },
     resource: { useListPage: useCustomersPage },
     columns,
     pagination: { defaultPageSize: 10 },
+    globalFilter: { key: 'search' },
+    searchMode: 'button',
   })
 
   return (
@@ -44,7 +46,12 @@ export function CustomersListPage() {
         <p className='text-destructive'>Failed to load customers.</p>
       ) : (
         <div className='flex flex-1 flex-col gap-4'>
-          <DataTableToolbar table={table} searchTitle='Search' searchPlaceholder='Search name or email...' />
+          <DataTableToolbar
+            table={table}
+            searchTitle='Name'
+            searchPlaceholder='Search name or email...'
+            onSearch={runSearch}
+          />
           <div className='overflow-hidden rounded-md border'>
             <Table>
               <TableHeader>
@@ -66,11 +73,6 @@ export function CustomersListPage() {
                         <TableCell key={cell.id}>{flexRender(cell.column.columnDef.cell, cell.getContext())}</TableCell>
                       ))}
                       <TableCell className='text-end'>
-                        <Button asChild variant='ghost' size='sm'>
-                          <Link to='/customers/$id' params={{ id: row.original.id }}>
-                            View
-                          </Link>
-                        </Button>
                         <Button asChild variant='ghost' size='sm'>
                           <Link to='/customers/saisie/$id' params={{ id: row.original.id }}>
                             Edit

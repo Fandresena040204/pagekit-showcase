@@ -2,7 +2,13 @@ import { Badge } from '@/components/ui/badge'
 import { type FieldDescriptor } from 'tanstack-pagekit'
 import type { Customer, CustomerForm } from '@/features/types'
 
-export const NAME_FIELD: FieldDescriptor<Customer> = { name: 'name', label: 'Name', type: 'text' }
+export const NAME_FIELD: FieldDescriptor<Customer> = {
+  name: 'name',
+  label: 'Name',
+  type: 'text',
+  clickable: true,
+  linkTo: (row) => ({ to: '/customers/$id', params: { id: row.id } }),
+}
 export const EMAIL_FIELD: FieldDescriptor<Customer> = { name: 'email', label: 'Email', type: 'text' }
 export const PHONE_FIELD: FieldDescriptor<Customer> = { name: 'phone', label: 'Phone', type: 'text' }
 export const CITY_FIELD: FieldDescriptor<Customer> = { name: 'city', label: 'City', type: 'text' }

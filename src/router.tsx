@@ -9,10 +9,13 @@ import { HomePage } from './home-page'
 import { CustomerDetailPage } from '@/features/customers/customer-detail-page'
 import { CustomersFormPage } from '@/features/customers/customers-form-page'
 import { CustomersListPage } from '@/features/customers/customers-list-page'
+import { ProductsDetailPage } from '@/features/products/products-detail-page'
 import { ProductsFormPage } from '@/features/products/products-form-page'
 import { ProductsListPage } from '@/features/products/products-list-page'
+import { RolesDetailPage } from '@/features/roles/roles-detail-page'
 import { RolesFormPage } from '@/features/roles/roles-form-page'
 import { RolesListPage } from '@/features/roles/roles-list-page'
+import { UsersDetailPage } from '@/features/users/users-detail-page'
 import { UsersListPage } from '@/features/users/users-list-page'
 import { VentesDetailPage } from '@/features/ventes/ventes-detail-page'
 import { VentesFormPage } from '@/features/ventes/ventes-form-page'
@@ -122,6 +125,12 @@ const productsListRoute = createRoute({
   validateSearch: (search: Record<string, unknown>) => search,
 })
 
+const productsDetailRoute = createRoute({
+  getParentRoute: () => authenticatedRoute,
+  path: '/products/$id',
+  component: ProductsDetailPage,
+})
+
 const productsNewRoute = createRoute({
   getParentRoute: () => authenticatedRoute,
   path: '/products/saisie',
@@ -139,6 +148,12 @@ const rolesListRoute = createRoute({
   path: '/roles',
   component: RolesListPage,
   validateSearch: (search: Record<string, unknown>) => search,
+})
+
+const rolesDetailRoute = createRoute({
+  getParentRoute: () => authenticatedRoute,
+  path: '/roles/$id',
+  component: RolesDetailPage,
 })
 
 const rolesNewRoute = createRoute({
@@ -160,6 +175,12 @@ const usersListRoute = createRoute({
   validateSearch: (search: Record<string, unknown>) => search,
 })
 
+const usersDetailRoute = createRoute({
+  getParentRoute: () => authenticatedRoute,
+  path: '/users/$id',
+  component: UsersDetailPage,
+})
+
 const routeTree = rootRoute.addChildren([
   signInRoute,
   authenticatedRoute.addChildren([
@@ -175,10 +196,13 @@ const routeTree = rootRoute.addChildren([
     productsListRoute,
     productsNewRoute,
     productsEditRoute,
+    productsDetailRoute,
     rolesListRoute,
     rolesNewRoute,
     rolesEditRoute,
+    rolesDetailRoute,
     usersListRoute,
+    usersDetailRoute,
   ]),
 ])
 

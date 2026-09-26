@@ -3,7 +3,17 @@ import { type FieldDescriptor, type FieldOption } from 'tanstack-pagekit'
 import { productCategoriesApi } from '@/features/product-categories/resource'
 import type { Product, ProductForm } from '@/features/types'
 
-export const NAME_FIELD: FieldDescriptor<Product> = { name: 'name', label: 'Name', type: 'text' }
+export const NAME_FIELD: FieldDescriptor<Product> = {
+  name: 'name',
+  label: 'Name',
+  type: 'text',
+  clickable: true,
+  // The link shows the product's name but navigates using its id — the
+  // point being demonstrated: a `FieldDescriptor.linkTo` receives the
+  // whole row, so it can send a value (`row.id`) different from the one
+  // it renders (the field's own value, `name`).
+  linkTo: (row) => ({ to: '/products/$id', params: { id: row.id } }),
+}
 export const SKU_FIELD: FieldDescriptor<Product> = { name: 'sku', label: 'SKU', type: 'text' }
 export const PRICE_FIELD: FieldDescriptor<Product> = {
   name: 'default_price',
@@ -15,6 +25,9 @@ export const CATEGORY_FIELD: FieldDescriptor<Product> = {
   label: 'Category',
   type: 'select',
 }
+// Demonstrates the range (min/max) filter on a date column — the
+// continuous-value counterpart to a faceted multi-select (see Ventes.status).
+export const CREATED_AT_FIELD: FieldDescriptor<Product> = { name: 'created_at', label: 'Created', type: 'date' }
 export const ACTIVE_FIELD: FieldDescriptor<Product> = {
   name: 'is_active',
   label: 'Active',

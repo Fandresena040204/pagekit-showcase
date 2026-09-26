@@ -23,11 +23,25 @@ export function ProductsListPage() {
   )
   const columns = useMemo(() => createProductsColumns(categoryNameById), [categoryNameById])
 
-  const { table, isLoading, isError } = useListPage({
+  const { table, isLoading, isError, search: runSearch } = useListPage({
     router: { search, navigate },
     resource: { useListPage: useProductsPage },
     columns,
     pagination: { defaultPageSize: 10 },
+    globalFilter: { key: 'search' },
+    searchMode: 'button',
+    columnFilters: [
+      { columnId: 'created_at', type: 'range', minSearchKey: 'created_at_min', maxSearchKey: 'created_at_max' },
+    ],
+    buildFilters: (columnFilters) => {
+      const createdAt = columnFilters.find((f) => f.id === 'created_at')?.value as
+        | { min?: string; max?: string }
+        | undefined
+      return {
+        created_at_min: createdAt?.min || undefined,
+        created_at_max: createdAt?.max || undefined,
+      }
+    },
   })
 
   return (
@@ -50,7 +64,13 @@ export function ProductsListPage() {
         <p className='text-destructive'>Failed to load products.</p>
       ) : (
         <div className='flex flex-1 flex-col gap-4'>
-          <DataTableToolbar table={table} searchTitle='Search' searchPlaceholder='Search name or SKU...' />
+          <DataTableToolbar
+            table={table}
+            searchTitle='Name'
+            searchPlaceholder='Search name or SKU...'
+            rangeFilters={[{ columnId: 'created_at', title: 'Created', type: 'date' }]}
+            onSearch={runSearch}
+          />
           <div className='overflow-hidden rounded-md border'>
             <Table>
               <TableHeader>
