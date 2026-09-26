@@ -1,4 +1,4 @@
-import { createResourceApi, createResourceHooks } from 'tanstack-pagekit'
+import { createActionHook, createResourceApi, createResourceHooks } from 'tanstack-pagekit'
 import { toast } from '@/lib/toast'
 import { httpClient } from '@/lib/http-client'
 import type { Vente, VenteForm } from '@/features/types'
@@ -37,3 +37,18 @@ export const {
     onDeleted: (label) => toast.success(`${label} deleted.`),
   },
 })
+
+// Custom actions (not plain CRUD) — same invalidate + notify mechanics as
+// the hooks above, via tanstack-pagekit's `createActionHook`. Mirror the
+// backend's FSM transitions: draft -> validated -> cancelled.
+export const useValiderVente = createActionHook<string>(
+  ['ventes'],
+  (id) => httpClient.post(`/api/ventes/${id}/valider/`, {}),
+  () => toast.success('Vente validated.')
+)
+
+export const useAnnulerVente = createActionHook<string>(
+  ['ventes'],
+  (id) => httpClient.post(`/api/ventes/${id}/annuler/`, {}),
+  () => toast.success('Vente cancelled.')
+)

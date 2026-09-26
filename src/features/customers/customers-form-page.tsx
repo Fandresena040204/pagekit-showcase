@@ -75,27 +75,29 @@ export function CustomersFormPage() {
           e.preventDefault()
           form.handleSubmit()
         }}
-        className='max-w-lg space-y-4'
+        className='w-full space-y-4'
       >
-        <RenderFormField descriptor={NAME_FORM_FIELD} form={form} />
-        <RenderFormField descriptor={EMAIL_FORM_FIELD} form={form} />
-        <RenderFormField descriptor={PHONE_FORM_FIELD} form={form} />
-        <RenderFormField descriptor={ADDRESS_FORM_FIELD} form={form} />
-        <RenderFormField descriptor={CITY_FORM_FIELD} form={form} />
-        <RenderFormField descriptor={BIRTH_DATE_FORM_FIELD} form={form} />
+        <div className='grid grid-cols-1 gap-4 rounded-md border p-4 sm:grid-cols-2 lg:grid-cols-3'>
+          <RenderFormField descriptor={NAME_FORM_FIELD} form={form} />
+          <RenderFormField descriptor={EMAIL_FORM_FIELD} form={form} />
+          <RenderFormField descriptor={PHONE_FORM_FIELD} form={form} />
+          <RenderFormField descriptor={ADDRESS_FORM_FIELD} form={form} />
+          <RenderFormField descriptor={CITY_FORM_FIELD} form={form} />
+          <RenderFormField descriptor={BIRTH_DATE_FORM_FIELD} form={form} />
 
-        <form.Field name='is_active'>
-          {(field) => (
-            <div className='flex items-center gap-2'>
-              <Checkbox
-                id='is_active'
-                checked={field.state.value}
-                onCheckedChange={(checked) => field.handleChange(checked === true)}
-              />
-              <Label htmlFor='is_active'>Active</Label>
-            </div>
-          )}
-        </form.Field>
+          <form.Field name='is_active'>
+            {(field) => (
+              <div className='flex items-center gap-2 self-end pb-2'>
+                <Checkbox
+                  id='is_active'
+                  checked={field.state.value}
+                  onCheckedChange={(checked) => field.handleChange(checked === true)}
+                />
+                <Label htmlFor='is_active'>Active</Label>
+              </div>
+            )}
+          </form.Field>
+        </div>
 
         <div className='flex justify-end gap-2 pt-2'>
           <Button type='button' variant='outline' onClick={() => navigate({ to: '/customers' })}>

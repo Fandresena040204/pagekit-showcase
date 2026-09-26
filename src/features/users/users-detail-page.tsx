@@ -36,23 +36,29 @@ export function UsersDetailPage() {
         <p className='text-muted-foreground'>{user.email}</p>
       </div>
 
-      <dl className='grid max-w-md grid-cols-2 gap-y-3 rounded-md border p-4 text-sm'>
-        <dt className='text-muted-foreground'>Username</dt>
-        <dd>{user.username}</dd>
-        <dt className='text-muted-foreground'>Email</dt>
-        <dd>{user.email}</dd>
-        <dt className='text-muted-foreground'>Roles</dt>
-        <dd className='flex flex-wrap gap-1'>
-          {user.roles.length ? (
-            user.roles.map((r) => (
-              <Badge key={r} variant='secondary' className='capitalize'>
-                {r}
-              </Badge>
-            ))
-          ) : (
-            <span className='text-muted-foreground'>None</span>
-          )}
-        </dd>
+      <dl className='grid grid-cols-2 gap-x-6 gap-y-3 rounded-md border p-4 sm:grid-cols-4'>
+        <div>
+          <dt className='text-xs text-muted-foreground'>Username</dt>
+          <dd className='mt-0.5'>{user.username}</dd>
+        </div>
+        <div>
+          <dt className='text-xs text-muted-foreground'>Email</dt>
+          <dd className='mt-0.5'>{user.email}</dd>
+        </div>
+        <div className='col-span-2'>
+          <dt className='text-xs text-muted-foreground'>Roles</dt>
+          <dd className='mt-0.5 flex flex-wrap gap-1'>
+            {user.roles.length ? (
+              user.roles.map((r) => (
+                <Badge key={r} variant='secondary' className='capitalize'>
+                  {r}
+                </Badge>
+              ))
+            ) : (
+              <span className='text-muted-foreground'>None</span>
+            )}
+          </dd>
+        </div>
       </dl>
     </Main>
   )

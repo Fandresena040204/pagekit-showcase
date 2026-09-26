@@ -60,9 +60,11 @@ export function RolesFormPage() {
           e.preventDefault()
           form.handleSubmit()
         }}
-        className='max-w-2xl space-y-4'
+        className='w-full space-y-4'
       >
-        <RenderFormField descriptor={NAME_FORM_FIELD} form={form} />
+        <div className='rounded-md border p-4 sm:max-w-sm'>
+          <RenderFormField descriptor={NAME_FORM_FIELD} form={form} />
+        </div>
 
         <form.Field name='permissions'>
           {(field: { state: { value: Role['permissions'] }; handleChange: (v: string[]) => void }) => (

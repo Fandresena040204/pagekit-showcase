@@ -14,7 +14,7 @@ import { useCustomers } from '@/features/customers/resource'
 import { useLivraisonsPage } from '@/features/livraisons/resource'
 import { usePaiementsPage } from '@/features/paiements/resource'
 import type { Livraison, Paiement, Vente, VenteLigne } from '@/features/types'
-import { useVente } from './resource'
+import { useAnnulerVente, useValiderVente, useVente } from './resource'
 import { CURRENCY_FIELD, CUSTOMER_FIELD, ID_FIELD, STATUS_FIELD, TOTAL_FIELD, customerOptions } from './fields'
 
 const TABS = ['lignes', 'livraisons', 'paiements'] as const
@@ -46,6 +46,9 @@ export function VentesDetailPage() {
     useEntity: () => useVente(id),
   })
 
+  const validerVente = useValiderVente()
+  const annulerVente = useAnnulerVente()
+
   if (isLoading) {
     return (
       <Main className='flex flex-1 items-center justify-center'>
@@ -76,11 +79,36 @@ export function VentesDetailPage() {
           <h2 className='text-2xl font-bold tracking-tight'>Vente {entity.id}</h2>
           <p className='text-muted-foreground'>Vente details and lines.</p>
         </div>
-        <Button asChild variant='outline'>
-          <Link to='/ventes/saisie/$id' params={{ id: entity.id }}>
-            Edit
-          </Link>
-        </Button>
+        <div className='flex gap-2'>
+          {/* Mirror the backend's FSM: draft -> validated -> cancelled
+              (Vente.validate_vente/cancel_vente) — only the action that's a
+              legal transition from the current status is shown. */}
+          {entity.status === 'draft' && (
+            <Button
+              variant='outline'
+              disabled={validerVente.isPending}
+              onClick={() => validerVente.mutate(entity.id)}
+            >
+              {validerVente.isPending && <Loader2 className='animate-spin' />}
+              Valider
+            </Button>
+          )}
+          {entity.status === 'validated' && (
+            <Button
+              variant='outline'
+              disabled={annulerVente.isPending}
+              onClick={() => annulerVente.mutate(entity.id)}
+            >
+              {annulerVente.isPending && <Loader2 className='animate-spin' />}
+              Annuler
+            </Button>
+          )}
+          <Button asChild variant='outline'>
+            <Link to='/ventes/saisie/$id' params={{ id: entity.id }}>
+              Edit
+            </Link>
+          </Button>
+        </div>
       </div>
 
       <dl className='grid grid-cols-2 gap-x-6 gap-y-3 rounded-md border p-4 sm:grid-cols-4'>
