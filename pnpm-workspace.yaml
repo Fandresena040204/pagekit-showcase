@@ -1,0 +1,5 @@
+# pnpm's supply-chain "minimum release age" guard would otherwise delay
+# installing a just-published version — excluded for our own private
+# package (published by us, trusted immediately), not third-party ones.
+minimumReleaseAgeExclude:
+  - '@fandresena040204/tanstack-pagekit'
