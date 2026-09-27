@@ -1,8 +1,8 @@
 import { useMemo } from 'react'
-import { Link, useNavigate, useSearch } from '@tanstack/react-router'
+import { Link } from '@tanstack/react-router'
 import { flexRender, type ColumnDef, type HeaderContext } from '@tanstack/react-table'
 import { Loader2 } from 'lucide-react'
-import { renderColumn, useListPage, type FieldDescriptor, type NavigateFn } from 'tanstack-pagekit'
+import { renderColumn, useListPage, useTanStackRouterAdapter, type FieldDescriptor } from 'tanstack-pagekit'
 import { cn } from '@/lib/utils'
 import { renderLink } from '@/components/fields/render-link'
 import { Button } from '@/components/ui/button'
@@ -29,8 +29,7 @@ function withSortableHeader<TRow>(descriptor: FieldDescriptor<TRow>): Pick<Colum
 }
 
 export function RolesListPage() {
-  const search = useSearch({ strict: false }) as Record<string, unknown>
-  const navigate = useNavigate() as unknown as NavigateFn
+  const router = useTanStackRouterAdapter()
 
   const columns: ColumnDef<Role>[] = useMemo(
     () => [
@@ -44,7 +43,7 @@ export function RolesListPage() {
   )
 
   const { table, isLoading, isError, search: runSearch } = useListPage({
-    router: { search, navigate },
+    router,
     resource: { useListPage: useRolesPage },
     columns,
     pagination: { defaultPageSize: 10 },

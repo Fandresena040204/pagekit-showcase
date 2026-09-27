@@ -1,8 +1,8 @@
 import { useMemo } from 'react'
-import { Link, useNavigate, useSearch } from '@tanstack/react-router'
+import { Link } from '@tanstack/react-router'
 import { flexRender } from '@tanstack/react-table'
 import { Loader2 } from 'lucide-react'
-import { useListPage, type NavigateFn } from 'tanstack-pagekit'
+import { useListPage, useTanStackRouterAdapter } from 'tanstack-pagekit'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import { Main } from '@/components/layout/main'
@@ -23,8 +23,7 @@ import { createVentesColumns } from './ventes-columns'
  * `ventes-table.tsx` (`appliedFilters` state there).
  */
 export function VentesListPage() {
-  const search = useSearch({ strict: false }) as Record<string, unknown>
-  const navigate = useNavigate() as unknown as NavigateFn
+  const router = useTanStackRouterAdapter()
 
   const { data: customers, isLoading: isLoadingCustomers } = useCustomers()
   const customerNameById = useMemo(
@@ -34,30 +33,19 @@ export function VentesListPage() {
   const columns = useMemo(() => createVentesColumns(customerNameById), [customerNameById])
 
   const { table, isLoading, isError, search: runSearch } = useListPage({
-    router: { search, navigate },
+    router,
     resource: { useListPage: useVentesPage },
     columns,
     pagination: { defaultPageSize: 10 },
     globalFilter: { key: 'search' },
     searchMode: 'button',
+    // Backend query params (status, customer, total_min/total_max) are
+    // derived automatically from this config — no buildFilters needed.
     columnFilters: [
       { columnId: 'status', searchKey: 'status', type: 'array' },
       { columnId: 'customer', searchKey: 'customer', type: 'array' },
       { columnId: 'total', type: 'range', minSearchKey: 'total_min', maxSearchKey: 'total_max' },
     ],
-    buildFilters: (columnFilters) => {
-      const status = columnFilters.find((f) => f.id === 'status')?.value as string[] | undefined
-      const customer = columnFilters.find((f) => f.id === 'customer')?.value as string[] | undefined
-      const total = columnFilters.find((f) => f.id === 'total')?.value as
-        | { min?: string; max?: string }
-        | undefined
-      return {
-        status: status?.length ? status.join(',') : undefined,
-        customer: customer?.length ? customer.join(',') : undefined,
-        total_min: total?.min || undefined,
-        total_max: total?.max || undefined,
-      }
-    },
   })
 
   const customerFacetOptions = useMemo(

@@ -1,12 +1,12 @@
-import { useForm } from '@tanstack/react-form'
 import { useNavigate, useParams } from '@tanstack/react-router'
 import { Loader2 } from 'lucide-react'
+import { useResourceForm } from 'tanstack-pagekit'
 import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Label } from '@/components/ui/label'
 import { Main } from '@/components/layout/main'
 import { RenderFormField } from '@/components/fields/render-form-field'
-import type { CustomerForm } from '@/features/types'
+import type { Customer, CustomerForm } from '@/features/types'
 import { useCreateCustomer, useCustomer, useUpdateCustomer } from './resource'
 import {
   ADDRESS_FORM_FIELD,
@@ -21,44 +21,36 @@ const emptyValues: CustomerForm = { name: '', email: '', phone: '', address: '',
 
 export function CustomersFormPage() {
   const { id } = useParams({ strict: false }) as { id?: string }
-  const isEdit = !!id
   const navigate = useNavigate()
 
-  const { data: currentRow, isLoading } = useCustomer(id ?? '', { enabled: isEdit })
-  const createCustomer = useCreateCustomer()
-  const updateCustomer = useUpdateCustomer()
-  const isPending = createCustomer.isPending || updateCustomer.isPending
-
-  const defaultValues: CustomerForm =
-    isEdit && currentRow
-      ? {
-          name: currentRow.name,
-          email: currentRow.email,
-          phone: currentRow.phone,
-          address: currentRow.address,
-          city: currentRow.city,
-          birth_date: currentRow.birth_date ?? '',
-          is_active: currentRow.is_active,
-        }
-      : emptyValues
-
-  const form = useForm({
-    defaultValues,
-    onSubmit: async ({ value }) => {
-      const payload = { ...value, birth_date: value.birth_date || null } as unknown as CustomerForm
-      if (isEdit && currentRow) {
-        await updateCustomer.mutateAsync({ id: currentRow.id, payload })
-      } else {
-        await createCustomer.mutateAsync(payload)
-      }
-      navigate({ to: '/customers' })
-    },
+  const { form, isEdit, isLoading, notFound, isPending } = useResourceForm<Customer, CustomerForm>({
+    id,
+    resource: { useOne: useCustomer, useCreate: useCreateCustomer, useUpdate: useUpdateCustomer },
+    emptyValues,
+    toFormValues: (customer) => ({
+      name: customer.name,
+      email: customer.email,
+      phone: customer.phone,
+      address: customer.address,
+      city: customer.city,
+      birth_date: customer.birth_date ?? '',
+      is_active: customer.is_active,
+    }),
+    onSuccess: () => navigate({ to: '/customers' }),
   })
 
-  if (isEdit && isLoading) {
+  if (isLoading) {
     return (
       <Main className='flex flex-1 items-center justify-center'>
         <Loader2 className='animate-spin' />
+      </Main>
+    )
+  }
+
+  if (notFound) {
+    return (
+      <Main>
+        <p className='text-destructive'>Customer not found.</p>
       </Main>
     )
   }

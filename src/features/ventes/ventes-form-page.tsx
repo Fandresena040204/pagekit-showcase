@@ -1,10 +1,10 @@
 import { useNavigate, useParams } from '@tanstack/react-router'
 import { Loader2, Plus, Trash2 } from 'lucide-react'
-import { useMasterDetailForm } from 'tanstack-pagekit'
+import { useMasterDetailForm, useResourceFormState } from 'tanstack-pagekit'
 import { Button } from '@/components/ui/button'
 import { Main } from '@/components/layout/main'
 import { RenderFormField } from '@/components/fields/render-form-field'
-import type { VenteForm, VenteLineForm } from '@/features/types'
+import type { Vente, VenteForm, VenteLineForm } from '@/features/types'
 import { computeVenteBreakdown, type VenteBreakdown } from './totals'
 import { useCreateVente, useUpdateVente, useVente } from './resource'
 import {
@@ -51,13 +51,17 @@ const emptyValues: VenteForm = {
  */
 export function VentesFormPage() {
   const { id } = useParams({ strict: false }) as { id?: string }
-  const isEdit = !!id
   const navigate = useNavigate()
 
-  const { data: currentRow, isLoading } = useVente(id ?? '', { enabled: isEdit })
-  const createVente = useCreateVente()
-  const updateVente = useUpdateVente()
-  const isPending = createVente.isPending || updateVente.isPending
+  // isEdit/isLoading/notFound/create-vs-update bookkeeping lives in the
+  // library (same primitive useResourceForm uses for a plain form) —
+  // useMasterDetailForm below only needs the resolved defaultValues and a
+  // plain onSubmit that hands the payload to `submit`.
+  const { currentRow, isEdit, isLoading, notFound, isPending, submit } = useResourceFormState<Vente, VenteForm>(id, {
+    useOne: useVente,
+    useCreate: useCreateVente,
+    useUpdate: useUpdateVente,
+  })
 
   const defaultValues: VenteForm =
     isEdit && currentRow
@@ -90,16 +94,12 @@ export function VentesFormPage() {
       breakdown: (lines, values) => computeVenteBreakdown(lines, values.discount_percent),
     },
     onSubmit: async (values) => {
-      if (isEdit && currentRow) {
-        await updateVente.mutateAsync({ id: currentRow.id, payload: values as VenteForm })
-      } else {
-        await createVente.mutateAsync(values as VenteForm)
-      }
+      await submit(values as VenteForm)
       navigate({ to: '/ventes' })
     },
   })
 
-  if (isEdit && isLoading) {
+  if (isLoading) {
     return (
       <Main className='flex flex-1 items-center justify-center'>
         <Loader2 className='animate-spin' />
@@ -107,7 +107,7 @@ export function VentesFormPage() {
     )
   }
 
-  if (isEdit && !currentRow) {
+  if (notFound) {
     return (
       <Main>
         <p className='text-destructive'>Vente not found.</p>

@@ -3,7 +3,13 @@ import { toast } from '@/lib/toast'
 import { httpClient } from '@/lib/http-client'
 import type { Customer, CustomerForm } from '@/features/types'
 
-export const customersApi = createResourceApi<Customer, CustomerForm>(httpClient, '/api/customers/')
+function toPayload(values: CustomerForm) {
+  // Django's DateField rejects '' (only null or a real date) — the form's
+  // empty state is '', so it's converted here rather than in the page.
+  return { ...values, birth_date: values.birth_date || null }
+}
+
+export const customersApi = createResourceApi<Customer, CustomerForm>(httpClient, '/api/customers/', { toPayload })
 
 export const {
   useList: useCustomers,

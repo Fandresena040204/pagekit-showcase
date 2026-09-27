@@ -1,8 +1,8 @@
 import { useMemo } from 'react'
-import { Link, useNavigate, useSearch } from '@tanstack/react-router'
+import { Link } from '@tanstack/react-router'
 import { flexRender } from '@tanstack/react-table'
 import { Loader2 } from 'lucide-react'
-import { useListPage, type NavigateFn } from 'tanstack-pagekit'
+import { useListPage, useTanStackRouterAdapter } from 'tanstack-pagekit'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import { Main } from '@/components/layout/main'
@@ -13,8 +13,7 @@ import { useProductsPage } from './resource'
 import { createProductsColumns } from './products-columns'
 
 export function ProductsListPage() {
-  const search = useSearch({ strict: false }) as Record<string, unknown>
-  const navigate = useNavigate() as unknown as NavigateFn
+  const router = useTanStackRouterAdapter()
 
   const { data: categories, isLoading: isLoadingCategories } = useProductCategories()
   const categoryNameById = useMemo(
@@ -24,7 +23,7 @@ export function ProductsListPage() {
   const columns = useMemo(() => createProductsColumns(categoryNameById), [categoryNameById])
 
   const { table, isLoading, isError, search: runSearch } = useListPage({
-    router: { search, navigate },
+    router,
     resource: { useListPage: useProductsPage },
     columns,
     pagination: { defaultPageSize: 10 },
@@ -33,15 +32,6 @@ export function ProductsListPage() {
     columnFilters: [
       { columnId: 'created_at', type: 'range', minSearchKey: 'created_at_min', maxSearchKey: 'created_at_max' },
     ],
-    buildFilters: (columnFilters) => {
-      const createdAt = columnFilters.find((f) => f.id === 'created_at')?.value as
-        | { min?: string; max?: string }
-        | undefined
-      return {
-        created_at_min: createdAt?.min || undefined,
-        created_at_max: createdAt?.max || undefined,
-      }
-    },
   })
 
   return (

@@ -1,8 +1,8 @@
 import { useMemo } from 'react'
-import { Link, useNavigate, useSearch } from '@tanstack/react-router'
+import { Link } from '@tanstack/react-router'
 import { flexRender } from '@tanstack/react-table'
 import { Loader2 } from 'lucide-react'
-import { useListPage, type NavigateFn } from 'tanstack-pagekit'
+import { useListPage, useTanStackRouterAdapter } from 'tanstack-pagekit'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import { Main } from '@/components/layout/main'
@@ -12,13 +12,12 @@ import { useCustomersPage } from './resource'
 import { createCustomersColumns } from './customers-columns'
 
 export function CustomersListPage() {
-  const search = useSearch({ strict: false }) as Record<string, unknown>
-  const navigate = useNavigate() as unknown as NavigateFn
+  const router = useTanStackRouterAdapter()
 
   const columns = useMemo(() => createCustomersColumns(), [])
 
   const { table, isLoading, isError, search: runSearch } = useListPage({
-    router: { search, navigate },
+    router,
     resource: { useListPage: useCustomersPage },
     columns,
     pagination: { defaultPageSize: 10 },

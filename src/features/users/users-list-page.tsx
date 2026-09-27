@@ -1,8 +1,7 @@
 import { useMemo, useState } from 'react'
-import { useNavigate, useSearch } from '@tanstack/react-router'
 import { flexRender, type ColumnDef, type HeaderContext } from '@tanstack/react-table'
 import { Loader2 } from 'lucide-react'
-import { renderColumn, useListPage, type FieldDescriptor, type NavigateFn } from 'tanstack-pagekit'
+import { renderColumn, useListPage, useTanStackRouterAdapter, type FieldDescriptor } from 'tanstack-pagekit'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
@@ -39,8 +38,7 @@ function withSortableHeader<TRow>(descriptor: FieldDescriptor<TRow>): Pick<Colum
  * `remove_role` custom actions instead of a form submit.
  */
 export function UsersListPage() {
-  const search = useSearch({ strict: false }) as Record<string, unknown>
-  const navigate = useNavigate() as unknown as NavigateFn
+  const router = useTanStackRouterAdapter()
   const [rolesDialogUser, setRolesDialogUser] = useState<User | null>(null)
 
   const { data: roles } = useRoles()
@@ -77,17 +75,13 @@ export function UsersListPage() {
   )
 
   const { table, isLoading, isError, search: runSearch } = useListPage({
-    router: { search, navigate },
+    router,
     resource: { useListPage: useUsersPage },
     columns,
     pagination: { defaultPageSize: 10 },
     globalFilter: { key: 'search' },
     searchMode: 'button',
     columnFilters: [{ columnId: 'roles', searchKey: 'roles', type: 'array' }],
-    buildFilters: (columnFilters) => {
-      const roleValues = columnFilters.find((f) => f.id === 'roles')?.value as string[] | undefined
-      return { roles: roleValues?.length ? roleValues.join(',') : undefined }
-    },
   })
 
   return (

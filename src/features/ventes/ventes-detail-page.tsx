@@ -1,8 +1,14 @@
 import { useMemo } from 'react'
-import { Link, useNavigate, useParams, useSearch } from '@tanstack/react-router'
+import { Link, useParams } from '@tanstack/react-router'
 import { flexRender, type ColumnDef } from '@tanstack/react-table'
 import { Loader2 } from 'lucide-react'
-import { renderDetailField, renderColumn, useClientTable, useDetailPage, type NavigateFn } from 'tanstack-pagekit'
+import {
+  renderDetailField,
+  renderColumn,
+  useClientTable,
+  useDetailPage,
+  useTanStackRouterAdapter,
+} from 'tanstack-pagekit'
 import { renderLink } from '@/components/fields/render-link'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -11,8 +17,8 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { useProducts } from '@/features/products/resource'
 import { useCustomers } from '@/features/customers/resource'
-import { useLivraisonsPage } from '@/features/livraisons/resource'
-import { usePaiementsPage } from '@/features/paiements/resource'
+import { useLivraisonsByVente } from '@/features/livraisons/resource'
+import { usePaiementsByVente } from '@/features/paiements/resource'
 import type { Livraison, Paiement, Vente, VenteLigne } from '@/features/types'
 import { useAnnulerVente, useValiderVente, useVente } from './resource'
 import { CURRENCY_FIELD, CUSTOMER_FIELD, ID_FIELD, STATUS_FIELD, TOTAL_FIELD, customerOptions } from './fields'
@@ -30,8 +36,7 @@ const TABS = ['lignes', 'livraisons', 'paiements'] as const
  */
 export function VentesDetailPage() {
   const { id } = useParams({ strict: false }) as { id: string }
-  const search = useSearch({ strict: false }) as Record<string, unknown>
-  const navigate = useNavigate() as unknown as NavigateFn
+  const router = useTanStackRouterAdapter()
 
   const { data: customers } = useCustomers()
   const customerNameById = useMemo(
@@ -40,7 +45,7 @@ export function VentesDetailPage() {
   )
 
   const { entity, isLoading, isError, activeTab, setActiveTab, isTabActive } = useDetailPage<Vente>({
-    router: { search, navigate },
+    router,
     tabs: TABS,
     defaultTab: 'lignes',
     useEntity: () => useVente(id),
@@ -187,7 +192,7 @@ const LIVRAISON_STATUS_LABEL: Record<Livraison['status'], string> = {
 }
 
 function LivraisonsTab({ venteId }: { venteId: string }) {
-  const { data, isLoading } = useLivraisonsPage({ page: 1, pageSize: 50, filters: { vente: venteId } })
+  const { data, isLoading } = useLivraisonsByVente(venteId, { pageSize: 50 })
 
   const columns: ColumnDef<Livraison>[] = useMemo(
     () => [
@@ -220,7 +225,7 @@ const PAIEMENT_METHOD_LABEL: Record<Paiement['method'], string> = {
 }
 
 function PaiementsTab({ venteId }: { venteId: string }) {
-  const { data, isLoading } = usePaiementsPage({ page: 1, pageSize: 50, filters: { vente: venteId } })
+  const { data, isLoading } = usePaiementsByVente(venteId, { pageSize: 50 })
 
   const columns: ColumnDef<Paiement>[] = useMemo(
     () => [

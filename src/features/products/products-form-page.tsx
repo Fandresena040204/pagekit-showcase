@@ -1,60 +1,54 @@
-import { useForm } from '@tanstack/react-form'
 import { useNavigate, useParams } from '@tanstack/react-router'
 import { Loader2 } from 'lucide-react'
+import { useResourceForm } from 'tanstack-pagekit'
 import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Label } from '@/components/ui/label'
 import { Main } from '@/components/layout/main'
 import { RenderFormField } from '@/components/fields/render-form-field'
-import type { ProductForm } from '@/features/types'
+import type { Product, ProductForm } from '@/features/types'
 import { useCreateProduct, useProduct, useUpdateProduct } from './resource'
 import { CATEGORY_FORM_FIELD, DESCRIPTION_FORM_FIELD, NAME_FORM_FIELD, PRICE_FORM_FIELD, SKU_FORM_FIELD } from './fields'
 
 const emptyValues: ProductForm = { name: '', sku: '', default_price: '0.00', category: '', description: '', is_active: true }
 
 /**
- * Simple (non master/detail) form — plain TanStack Form `useForm` rather
- * than `useMasterDetailForm` (no line array here), same `RenderFormField` +
- * `FieldDescriptor` pattern as the Vente form's header fields.
+ * Simple (non master/detail) form — `useResourceForm` (tanstack-pagekit)
+ * handles isEdit/loading/notFound/create-vs-update/isPending; this page
+ * only supplies the field mapping and the JSX (`RenderFormField` +
+ * `FieldDescriptor`, same pattern as the Vente form's header fields).
  */
 export function ProductsFormPage() {
   const { id } = useParams({ strict: false }) as { id?: string }
-  const isEdit = !!id
   const navigate = useNavigate()
 
-  const { data: currentRow, isLoading } = useProduct(id ?? '', { enabled: isEdit })
-  const createProduct = useCreateProduct()
-  const updateProduct = useUpdateProduct()
-  const isPending = createProduct.isPending || updateProduct.isPending
-
-  const defaultValues: ProductForm =
-    isEdit && currentRow
-      ? {
-          name: currentRow.name,
-          sku: currentRow.sku,
-          default_price: currentRow.default_price,
-          category: currentRow.category ?? '',
-          description: currentRow.description,
-          is_active: currentRow.is_active,
-        }
-      : emptyValues
-
-  const form = useForm({
-    defaultValues,
-    onSubmit: async ({ value }) => {
-      if (isEdit && currentRow) {
-        await updateProduct.mutateAsync({ id: currentRow.id, payload: value })
-      } else {
-        await createProduct.mutateAsync(value)
-      }
-      navigate({ to: '/products' })
-    },
+  const { form, isEdit, isLoading, notFound, isPending } = useResourceForm<Product, ProductForm>({
+    id,
+    resource: { useOne: useProduct, useCreate: useCreateProduct, useUpdate: useUpdateProduct },
+    emptyValues,
+    toFormValues: (product) => ({
+      name: product.name,
+      sku: product.sku,
+      default_price: product.default_price,
+      category: product.category ?? '',
+      description: product.description,
+      is_active: product.is_active,
+    }),
+    onSuccess: () => navigate({ to: '/products' }),
   })
 
-  if (isEdit && isLoading) {
+  if (isLoading) {
     return (
       <Main className='flex flex-1 items-center justify-center'>
         <Loader2 className='animate-spin' />
+      </Main>
+    )
+  }
+
+  if (notFound) {
+    return (
+      <Main>
+        <p className='text-destructive'>Product not found.</p>
       </Main>
     )
   }

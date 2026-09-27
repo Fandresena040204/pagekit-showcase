@@ -1,10 +1,9 @@
-import { useForm } from '@tanstack/react-form'
 import { useNavigate, useParams } from '@tanstack/react-router'
 import { Loader2 } from 'lucide-react'
+import { useResourceForm, type FieldDescriptor } from 'tanstack-pagekit'
 import { Button } from '@/components/ui/button'
 import { Main } from '@/components/layout/main'
 import { RenderFormField } from '@/components/fields/render-form-field'
-import { type FieldDescriptor } from 'tanstack-pagekit'
 import type { Role, RoleForm } from '@/features/types'
 import { useCreateRole, useRole, useUpdateRole } from './resource'
 import { PermissionMatrix } from './permission-matrix'
@@ -15,33 +14,28 @@ const emptyValues: RoleForm = { name: '', permissions: [] }
 
 export function RolesFormPage() {
   const { id } = useParams({ strict: false }) as { id?: string }
-  const isEdit = !!id
   const navigate = useNavigate()
 
-  const { data: currentRow, isLoading } = useRole(id ?? '', { enabled: isEdit })
-  const createRole = useCreateRole()
-  const updateRole = useUpdateRole()
-  const isPending = createRole.isPending || updateRole.isPending
-
-  const defaultValues: RoleForm =
-    isEdit && currentRow ? { name: currentRow.name, permissions: currentRow.permissions } : emptyValues
-
-  const form = useForm({
-    defaultValues,
-    onSubmit: async ({ value }) => {
-      if (isEdit && currentRow) {
-        await updateRole.mutateAsync({ id: currentRow.id, payload: value })
-      } else {
-        await createRole.mutateAsync(value)
-      }
-      navigate({ to: '/roles' })
-    },
+  const { form, isEdit, isLoading, notFound, isPending } = useResourceForm<Role, RoleForm>({
+    id,
+    resource: { useOne: useRole, useCreate: useCreateRole, useUpdate: useUpdateRole },
+    emptyValues,
+    toFormValues: (role) => ({ name: role.name, permissions: role.permissions }),
+    onSuccess: () => navigate({ to: '/roles' }),
   })
 
-  if (isEdit && isLoading) {
+  if (isLoading) {
     return (
       <Main className='flex flex-1 items-center justify-center'>
         <Loader2 className='animate-spin' />
+      </Main>
+    )
+  }
+
+  if (notFound) {
+    return (
+      <Main>
+        <p className='text-destructive'>Role not found.</p>
       </Main>
     )
   }
