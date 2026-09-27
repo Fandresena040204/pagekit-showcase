@@ -19,7 +19,7 @@ pnpm install
 pnpm dev
 ```
 
-`.env` sets `VITE_API_BASE_URL=http://localhost:8000`. Sign in with the demo account seeded on the backend: **username `admin`, password `admin1234`** (role `admin`, full permissions).
+`.env` sets `VITE_API_BASE_URL=http://localhost:8000`. Sign in with the demo account seeded on the backend: **username `admin`, password `Admin123!`** (role `admin`, full permissions).
 
 `pnpm build` typechecks and builds for production.
 
@@ -80,7 +80,7 @@ Radix `Popover`/`Command` comboboxes (customer/product/category selects) don't r
 ## Demo data
 
 Seeded directly on the Django backend (not committed as a migration — a one-off `manage.py shell` script), independent of this repo:
-- User `admin` / `admin1234`, role `admin` (all permissions).
+- User `admin` / `Admin123!`, role `admin` (all permissions).
 - A few customers, products (with categories), and 3 ventes with lines/livraisons/paiements, so the list/detail pages aren't empty on first login.
 
 ## Links
