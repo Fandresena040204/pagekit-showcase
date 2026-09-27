@@ -1,26 +1,15 @@
-import { createResourceApi, createResourceHooks, createSubResourceHooks } from 'tanstack-pagekit'
-import { toast } from '@/lib/toast'
+import { createSubResourceHooks } from 'tanstack-pagekit'
 import { httpClient } from '@/lib/http-client'
+import { createCrudResource } from '@/lib/create-crud-resource'
 import type { Livraison } from '@/features/types'
 
-export const livraisonsApi = createResourceApi<Livraison, Partial<Livraison>>(
-  httpClient,
-  '/api/livraisons/'
-)
-
 export const {
+  api: livraisonsApi,
   useListPage: useLivraisonsPage,
   useCreate: useCreateLivraison,
   useUpdate: useUpdateLivraison,
   useDelete: useDeleteLivraison,
-} = createResourceHooks(['livraisons'], livraisonsApi, {
-  entityLabel: 'Livraison',
-  notify: {
-    onCreated: (label) => toast.success(`${label} created.`),
-    onUpdated: (label) => toast.success(`${label} updated.`),
-    onDeleted: (label) => toast.success(`${label} deleted.`),
-  },
-})
+} = createCrudResource<Livraison, Partial<Livraison>>('livraisons', '/api/livraisons/', 'Livraison')
 
 // For the Vente detail page's "Livraisons" tab: `/api/livraisons/` filtered
 // by `?vente=<id>` — a flat FK filter, not a nested route, which is why

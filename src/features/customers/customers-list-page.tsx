@@ -1,4 +1,3 @@
-import { useMemo } from 'react'
 import { Link } from '@tanstack/react-router'
 import { flexRender } from '@tanstack/react-table'
 import { Loader2 } from 'lucide-react'
@@ -9,17 +8,15 @@ import { Main } from '@/components/layout/main'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { DataTablePagination, DataTableToolbar } from '@/components/data-table'
 import { useCustomersPage } from './resource'
-import { createCustomersColumns } from './customers-columns'
+import { CUSTOMERS_COLUMNS } from './fields'
 
 export function CustomersListPage() {
   const router = useTanStackRouterAdapter()
 
-  const columns = useMemo(() => createCustomersColumns(), [])
-
   const { table, isLoading, isError, search: runSearch } = useListPage({
     router,
     resource: { useListPage: useCustomersPage },
-    columns,
+    columns: CUSTOMERS_COLUMNS,
     pagination: { defaultPageSize: 10 },
     searchMode: 'button',
     columnFilters: [
@@ -87,7 +84,7 @@ export function CustomersListPage() {
                   ))
                 ) : (
                   <TableRow>
-                    <TableCell colSpan={columns.length + 1} className={cn('h-24 text-center')}>
+                    <TableCell colSpan={CUSTOMERS_COLUMNS.length + 1} className={cn('h-24 text-center')}>
                       No results.
                     </TableCell>
                   </TableRow>

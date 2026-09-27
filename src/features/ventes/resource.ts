@@ -1,6 +1,7 @@
-import { createActionHook, createResourceApi, createResourceHooks } from 'tanstack-pagekit'
+import { createActionHook } from 'tanstack-pagekit'
 import { toast } from '@/lib/toast'
 import { httpClient } from '@/lib/http-client'
+import { createCrudResource } from '@/lib/create-crud-resource'
 import type { Vente, VenteForm } from '@/features/types'
 
 function toPayload(values: VenteForm) {
@@ -20,23 +21,15 @@ function toPayload(values: VenteForm) {
   }
 }
 
-export const ventesApi = createResourceApi<Vente, VenteForm>(httpClient, '/api/ventes/', { toPayload })
-
 export const {
+  api: ventesApi,
   useList: useVentes,
   useListPage: useVentesPage,
   useOne: useVente,
   useCreate: useCreateVente,
   useUpdate: useUpdateVente,
   useDelete: useDeleteVente,
-} = createResourceHooks(['ventes'], ventesApi, {
-  entityLabel: 'Vente',
-  notify: {
-    onCreated: (label) => toast.success(`${label} created.`),
-    onUpdated: (label) => toast.success(`${label} updated.`),
-    onDeleted: (label) => toast.success(`${label} deleted.`),
-  },
-})
+} = createCrudResource<Vente, VenteForm>('ventes', '/api/ventes/', 'Vente', { toPayload })
 
 // Custom actions (not plain CRUD) — same invalidate + notify mechanics as
 // the hooks above, via tanstack-pagekit's `createActionHook`. Mirror the

@@ -1,5 +1,8 @@
+import { type ColumnDef } from '@tanstack/react-table'
 import { Badge } from '@/components/ui/badge'
-import { type FieldDescriptor } from 'tanstack-pagekit'
+import { renderColumn, type FieldDescriptor } from 'tanstack-pagekit'
+import { renderLink } from '@/components/fields/render-link'
+import { withSortableHeader } from '@/components/fields/with-sortable-header'
 import type { Customer, CustomerForm } from '@/features/types'
 
 export const NAME_FIELD: FieldDescriptor<Customer> = {
@@ -34,3 +37,12 @@ export const BIRTH_DATE_FORM_FIELD: FieldDescriptor<CustomerForm> = {
   label: 'Birth date',
   type: 'date',
 }
+
+// --- List columns ---
+export const CUSTOMERS_COLUMNS: ColumnDef<Customer>[] = [
+  renderColumn(NAME_FIELD, { renderLink, columnDef: withSortableHeader(NAME_FIELD) }),
+  renderColumn(EMAIL_FIELD, {}),
+  renderColumn(PHONE_FIELD, {}),
+  renderColumn(CITY_FIELD, { columnDef: withSortableHeader(CITY_FIELD) }),
+  renderColumn(ACTIVE_FIELD, { columnDef: { enableSorting: false } }),
+]

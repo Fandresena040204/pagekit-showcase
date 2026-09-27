@@ -1,9 +1,15 @@
+import { type ColumnDef } from '@tanstack/react-table'
 import { cn } from '@/lib/utils'
 import { Badge } from '@/components/ui/badge'
-import { type FieldDescriptor, type FieldOption } from 'tanstack-pagekit'
+import { renderColumn, type FieldDescriptor, type FieldOption } from 'tanstack-pagekit'
+import { renderLink } from '@/components/fields/render-link'
+import { withSortableHeader } from '@/components/fields/with-sortable-header'
 import { customersApi } from '@/features/customers/resource'
 import { productsApi } from '@/features/products/resource'
 import type { Product, Vente, VenteForm, VenteStatus } from '@/features/types'
+
+const arrayFilter = (row: { getValue: (id: string) => unknown }, id: string, value: string[]) =>
+  value.includes(row.getValue(id) as string)
 
 const STATUS_BADGE_VARIANT: Record<VenteStatus, string> = {
   draft: 'bg-muted text-muted-foreground',
@@ -138,3 +144,16 @@ export function lineFormFields(index: number): FieldDescriptor<VenteForm>[] {
     { name: `lines[${index}].tva_rate`, label: 'TVA', type: 'number', placeholder: '20' },
   ]
 }
+
+// --- List columns: built once from the field descriptors above, module-
+// scoped (no props) — a plain constant, not a factory + useMemo in the
+// list page.
+export const VENTES_COLUMNS: ColumnDef<Vente>[] = [
+  renderColumn(ID_FIELD, { renderLink, columnDef: { enableHiding: false, ...withSortableHeader(ID_FIELD) } }),
+  // `customer_name` is resolved server-side (VenteSerializer) — no
+  // `resolvedOptions`/client-side id->name map needed. Sorting now happens
+  // on the readable name too, not the opaque id.
+  renderColumn(CUSTOMER_FIELD, { renderLink, columnDef: withSortableHeader(CUSTOMER_FIELD) }),
+  renderColumn(STATUS_FIELD, { columnDef: { filterFn: arrayFilter, enableSorting: false } }),
+  renderColumn(TOTAL_FIELD, { columnDef: withSortableHeader(TOTAL_FIELD) }),
+]

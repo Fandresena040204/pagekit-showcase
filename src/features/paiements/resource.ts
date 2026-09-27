@@ -1,26 +1,15 @@
-import { createResourceApi, createResourceHooks, createSubResourceHooks } from 'tanstack-pagekit'
-import { toast } from '@/lib/toast'
+import { createSubResourceHooks } from 'tanstack-pagekit'
 import { httpClient } from '@/lib/http-client'
+import { createCrudResource } from '@/lib/create-crud-resource'
 import type { Paiement } from '@/features/types'
 
-export const paiementsApi = createResourceApi<Paiement, Partial<Paiement>>(
-  httpClient,
-  '/api/paiements/'
-)
-
 export const {
+  api: paiementsApi,
   useListPage: usePaiementsPage,
   useCreate: useCreatePaiement,
   useUpdate: useUpdatePaiement,
   useDelete: useDeletePaiement,
-} = createResourceHooks(['paiements'], paiementsApi, {
-  entityLabel: 'Paiement',
-  notify: {
-    onCreated: (label) => toast.success(`${label} created.`),
-    onUpdated: (label) => toast.success(`${label} updated.`),
-    onDeleted: (label) => toast.success(`${label} deleted.`),
-  },
-})
+} = createCrudResource<Paiement, Partial<Paiement>>('paiements', '/api/paiements/', 'Paiement')
 
 // Same reasoning as `useLivraisonsByVente` in livraisons/resource.ts.
 export const { useSubResourceList: usePaiementsByVente } = createSubResourceHooks<Paiement>(

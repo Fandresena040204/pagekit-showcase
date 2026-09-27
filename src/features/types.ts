@@ -15,14 +15,12 @@ export type Customer = {
   is_active: boolean
 }
 
-export type CustomerForm = {
-  name: string
-  email: string
-  phone: string
-  address: string
-  city: string
+// Same fields as `Customer` minus server-assigned ones, with `birth_date`
+// narrowed from `string | null` to `string` (the form's empty state is ''
+// — see customers/resource.ts's `toPayload` for the '' -> null conversion
+// back on submit) — not a plain `Omit<Customer, ...>` because of that.
+export type CustomerForm = Omit<Customer, 'id' | 'created_at' | 'updated_at' | 'birth_date'> & {
   birth_date: string
-  is_active: boolean
 }
 
 export type ProductCategory = {
@@ -46,14 +44,13 @@ export type Product = {
   is_active: boolean
 }
 
-export type ProductForm = {
-  name: string
-  sku: string
-  default_price: string
-  category: string
-  description: string
-  is_active: boolean
-}
+// Same fields as `Product` minus server-assigned/resolved ones, with
+// `category` narrowed from `string | null` to `string` (the select field's
+// empty state is '' — no such thing as a `null` selection in the form).
+export type ProductForm = Omit<
+  Product,
+  'id' | 'created_at' | 'updated_at' | 'category_name' | 'category'
+> & { category: string }
 
 export type VenteStatus = 'draft' | 'validated' | 'cancelled'
 export type VentePriority = 'low' | 'normal' | 'high'
@@ -147,10 +144,7 @@ export type Role = {
   permissions: string[]
 }
 
-export type RoleForm = {
-  name: string
-  permissions: string[]
-}
+export type RoleForm = Omit<Role, 'id'>
 
 export type User = {
   id: string

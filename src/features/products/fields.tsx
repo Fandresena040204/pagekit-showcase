@@ -1,5 +1,9 @@
+import { type ColumnDef } from '@tanstack/react-table'
 import { Badge } from '@/components/ui/badge'
-import { type FieldDescriptor } from 'tanstack-pagekit'
+import { renderColumn, type FieldDescriptor } from 'tanstack-pagekit'
+import { renderLink } from '@/components/fields/render-link'
+import { withSortableHeader } from '@/components/fields/with-sortable-header'
+import { rangeFilterFn } from '@/lib/fields/range-filter-fn'
 import { productCategoriesApi } from '@/features/product-categories/resource'
 import type { Product, ProductForm } from '@/features/types'
 
@@ -63,3 +67,16 @@ export const CATEGORY_FORM_FIELD: FieldDescriptor<ProductForm> = {
   options: () =>
     productCategoriesApi.fetchAll().then((categories) => categories.map((c) => ({ label: c.name, value: c.id }))),
 }
+
+// --- List columns ---
+export const PRODUCTS_COLUMNS: ColumnDef<Product>[] = [
+  renderColumn(NAME_FIELD, { renderLink, columnDef: withSortableHeader(NAME_FIELD) }),
+  renderColumn(SKU_FIELD, { columnDef: withSortableHeader(SKU_FIELD) }),
+  renderColumn(PRICE_FIELD, { columnDef: withSortableHeader(PRICE_FIELD) }),
+  // `category_name` resolved server-side — no `resolvedOptions` needed.
+  renderColumn(CATEGORY_FIELD, {}),
+  renderColumn(ACTIVE_FIELD, { columnDef: { enableSorting: false } }),
+  renderColumn(CREATED_AT_FIELD, {
+    columnDef: { filterFn: rangeFilterFn('date'), ...withSortableHeader(CREATED_AT_FIELD) },
+  }),
+]

@@ -1,4 +1,3 @@
-import { useMemo } from 'react'
 import { Link } from '@tanstack/react-router'
 import { flexRender } from '@tanstack/react-table'
 import { Loader2 } from 'lucide-react'
@@ -9,17 +8,15 @@ import { Main } from '@/components/layout/main'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { DataTablePagination, DataTableToolbar } from '@/components/data-table'
 import { useProductsPage } from './resource'
-import { createProductsColumns } from './products-columns'
+import { PRODUCTS_COLUMNS } from './fields'
 
 export function ProductsListPage() {
   const router = useTanStackRouterAdapter()
 
-  const columns = useMemo(() => createProductsColumns(), [])
-
   const { table, isLoading, isError, search: runSearch } = useListPage({
     router,
     resource: { useListPage: useProductsPage },
-    columns,
+    columns: PRODUCTS_COLUMNS,
     pagination: { defaultPageSize: 10 },
     searchMode: 'button',
     columnFilters: [
@@ -89,7 +86,7 @@ export function ProductsListPage() {
                   ))
                 ) : (
                   <TableRow>
-                    <TableCell colSpan={columns.length + 1} className={cn('h-24 text-center')}>
+                    <TableCell colSpan={PRODUCTS_COLUMNS.length + 1} className={cn('h-24 text-center')}>
                       No results.
                     </TableCell>
                   </TableRow>
