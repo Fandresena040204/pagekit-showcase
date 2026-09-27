@@ -73,14 +73,10 @@ export function VentesListPage() {
               {
                 columnId: 'customer',
                 title: 'Customer',
-                // Customers can number in the thousands — nothing loaded
-                // upfront, same debounced server search as the customer
-                // select-autocomplete in the Vente form (fields.tsx), just
-                // multi-select here.
                 search: {
                   fetchOptions: (query) =>
                     customersApi
-                      .fetchList({ page: 1, pageSize: 20, search: query })
+                      .fetchList({ page: 1, pageSize: 5, search: query })
                       .then((r) => r.results.map((c) => ({ label: c.name, value: c.id }))),
                   resolveInitial: (id) =>
                     customersApi.fetchOne(id).then((c) => ({ label: c.name, value: c.id })),

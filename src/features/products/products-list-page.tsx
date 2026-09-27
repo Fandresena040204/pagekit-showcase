@@ -27,9 +27,14 @@ export function ProductsListPage() {
     resource: { useListPage: useProductsPage },
     columns,
     pagination: { defaultPageSize: 10 },
-    globalFilter: { key: 'search' },
     searchMode: 'button',
+    // Name and SKU are two independent filters (their own backend param
+    // each) — not one combined global search, which would need an
+    // ambiguous "Name or SKU..." placeholder for what are really two
+    // different questions.
     columnFilters: [
+      { columnId: 'name', searchKey: 'name', type: 'string' },
+      { columnId: 'sku', searchKey: 'sku', type: 'string' },
       { columnId: 'created_at', type: 'range', minSearchKey: 'created_at_min', maxSearchKey: 'created_at_max' },
     ],
   })
@@ -56,8 +61,10 @@ export function ProductsListPage() {
         <div className='flex flex-1 flex-col gap-4'>
           <DataTableToolbar
             table={table}
-            searchTitle='Name'
-            searchPlaceholder='Search name or SKU...'
+            textFilters={[
+              { columnId: 'name', title: 'Name', placeholder: 'Search name...' },
+              { columnId: 'sku', title: 'SKU', placeholder: 'Search SKU...' },
+            ]}
             rangeFilters={[{ columnId: 'created_at', title: 'Created', type: 'date' }]}
             onSearch={runSearch}
           />

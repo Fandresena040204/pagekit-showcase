@@ -30,6 +30,19 @@ type DataTableToolbarProps<TData> = {
   searchPlaceholder?: string
   searchKey?: string
   filters?: FacetedFilterConfig[]
+  /**
+   * Independent free-text filters, each its own popover bound to its own
+   * column/backend param — not the single `searchKey`/`searchTitle` above
+   * (which is either one column or the global `search=`). Use this instead
+   * of a single combined search when "search across several fields" would
+   * mean one ambiguous placeholder ("Name or SKU...") for what are really
+   * two different filters.
+   */
+  textFilters?: {
+    columnId: string
+    title: string
+    placeholder?: string
+  }[]
   /** Filtres par intervalle (min/max) pour des colonnes number/date/datetime. */
   rangeFilters?: {
     columnId: string
@@ -51,6 +64,7 @@ export function DataTableToolbar<TData>({
   searchPlaceholder = 'Filter...',
   searchKey,
   filters = [],
+  textFilters = [],
   rangeFilters = [],
   onSearch,
 }: DataTableToolbarProps<TData>) {
@@ -60,26 +74,40 @@ export function DataTableToolbar<TData>({
   return (
     <div className='flex items-center justify-between'>
       <div className='flex flex-1 flex-col-reverse items-start gap-y-2 sm:flex-row sm:items-center sm:space-x-2'>
-        {searchKey ? (
-          <DataTableTextFilter
-            title={searchTitle}
-            placeholder={searchPlaceholder}
-            value={
-              (table.getColumn(searchKey)?.getFilterValue() as string) ?? ''
-            }
-            onChange={(value) =>
-              table.getColumn(searchKey)?.setFilterValue(value || undefined)
-            }
-          />
-        ) : (
-          <DataTableTextFilter
-            title={searchTitle}
-            placeholder={searchPlaceholder}
-            value={table.getState().globalFilter ?? ''}
-            onChange={(value) => table.setGlobalFilter(value)}
-          />
-        )}
+        {textFilters.length === 0 &&
+          (searchKey ? (
+            <DataTableTextFilter
+              title={searchTitle}
+              placeholder={searchPlaceholder}
+              value={
+                (table.getColumn(searchKey)?.getFilterValue() as string) ?? ''
+              }
+              onChange={(value) =>
+                table.getColumn(searchKey)?.setFilterValue(value || undefined)
+              }
+            />
+          ) : (
+            <DataTableTextFilter
+              title={searchTitle}
+              placeholder={searchPlaceholder}
+              value={table.getState().globalFilter ?? ''}
+              onChange={(value) => table.setGlobalFilter(value)}
+            />
+          ))}
         <div className='flex gap-x-2'>
+          {textFilters.map((filter) => {
+            const column = table.getColumn(filter.columnId)
+            if (!column) return null
+            return (
+              <DataTableTextFilter
+                key={filter.columnId}
+                title={filter.title}
+                placeholder={filter.placeholder}
+                value={(column.getFilterValue() as string) ?? ''}
+                onChange={(value) => column.setFilterValue(value || undefined)}
+              />
+            )
+          })}
           {filters.map((filter) => {
             const column = table.getColumn(filter.columnId)
             if (!column) return null
