@@ -1,6 +1,26 @@
 // Mirrors the shapes of poc-vente-front/src/features/{ventes,customers,products}/data/schema.ts
 // (zod schemas there — plain TS types here, validation kept lightweight for this POC),
 // kept in sync with poc-django-tanstack's serializers (see apps/*/serializers/*.py).
+//
+// Product/ProductForm and Role/RoleForm below are now GENERATED, not hand-
+// copied: `npm run generate:api-types` runs openapi-typescript against
+// poc-django-tanstack's OpenAPI schema (`manage.py spectacular --file
+// schema.yml`, drf-spectacular reading the serializers directly) into
+// `src/lib/api-types.ts`, and these are thin aliases over that. Change a
+// serializer, regenerate, and the type here updates itself — no more
+// manual copying, no drift.
+//
+// The rest (Customer, Vente, Livraison, Paiement, User) are still hand-
+// written for now: several share one serializer for both read and write
+// (Customer, Role's own case is clean because Role has no separate list
+// view), which makes drf-spectacular mark every optional-on-write field as
+// `?` even though a GET response always includes it — usable, but slightly
+// less precise for display code than the hand-written version until that's
+// worked through per entity. Vente specifically also has a form shape
+// (`lines`) that genuinely diverges from the write schema (no id-optional-
+// with-required-siblings distinction, TanStack Form array conventions), so
+// it isn't a 1:1 alias candidate regardless.
+import type { components } from '@/lib/api-types'
 
 export type Customer = {
   id: string
@@ -23,33 +43,19 @@ export type CustomerForm = Omit<Customer, 'id' | 'created_at' | 'updated_at' | '
   birth_date: string
 }
 
-export type ProductCategory = {
-  id: string
-  name: string
-  created_at: string
-  updated_at: string
-}
+export type ProductCategory = components['schemas']['ProductCategory']
 
-export type Product = {
-  id: string
-  created_at: string
-  updated_at: string
-  name: string
-  sku: string
-  default_price: string
-  category: string | null
-  /** Resolved server-side (ProductSerializer.get_category_name) — null when `category` is null. */
-  category_name: string | null
-  description: string
-  is_active: boolean
-}
+// = the generated `ProductRead` schema (backed by `ProductListView`, the DB
+// view — see products/resource.ts) — `category_name` included, straight
+// from the backend, no hand-copying.
+export type Product = components['schemas']['ProductRead']
 
-// Same fields as `Product` minus server-assigned/resolved ones, with
-// `category` narrowed from `string | null` to `string` (the select field's
-// empty state is '' — no such thing as a `null` selection in the form).
+// = the generated `Product` schema (the write serializer), minus server-
+// assigned fields, with `category` narrowed from `string | null` to
+// `string` (the select field's empty state is '' — no `null` selection).
 export type ProductForm = Omit<
-  Product,
-  'id' | 'created_at' | 'updated_at' | 'category_name' | 'category'
+  components['schemas']['Product'],
+  'id' | 'created_at' | 'updated_at' | 'category'
 > & { category: string }
 
 export type VenteStatus = 'draft' | 'validated' | 'cancelled'
@@ -138,11 +144,10 @@ export type Paiement = {
 }
 
 // Django's `auth.Permission` codenames the API deals in, e.g. 'view_vente'.
-export type Role = {
-  id: string
-  name: string
-  permissions: string[]
-}
+// = the generated `Role` schema — one shared serializer for read/write
+// (no separate DB view for roles), so unlike Product this one schema
+// covers both directions already.
+export type Role = Required<components['schemas']['Role']>
 
 export type RoleForm = Omit<Role, 'id'>
 
