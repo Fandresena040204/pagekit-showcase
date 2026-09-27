@@ -1,6 +1,8 @@
 import * as React from 'react'
 import { CheckIcon, PlusCircledIcon } from '@radix-ui/react-icons'
+import { Loader2 } from 'lucide-react'
 import { type Column } from '@tanstack/react-table'
+import { useSearchOptions, type SearchOptionsConfig } from 'tanstack-pagekit'
 import { cn } from '@/lib/utils'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -20,23 +22,41 @@ import {
 } from '@/components/ui/popover'
 import { Separator } from '@/components/ui/separator'
 
+type StaticOption = {
+  label: string
+  value: string
+  icon?: React.ComponentType<{ className?: string }>
+}
+
 type DataTableFacetedFilterProps<TData, TValue> = {
   column?: Column<TData, TValue>
   title?: string
-  options: {
-    label: string
-    value: string
-    icon?: React.ComponentType<{ className?: string }>
-  }[]
+  /**
+   * Fixed, small value set (status, currency...) loaded upfront — mutually
+   * exclusive with `search`. Use this when every possible value is already
+   * known and short enough to list in one popover.
+   */
+  options?: StaticOption[]
+  /**
+   * Value set too large to load upfront (customers, products...): nothing
+   * is shown until the user types, same debounced server search as a
+   * select-autocomplete form field (`FieldDescriptor.search`) — just
+   * multi-select instead of single. Mutually exclusive with `options`.
+   */
+  search?: SearchOptionsConfig
 }
 
 export function DataTableFacetedFilter<TData, TValue>({
   column,
   title,
-  options,
+  options: staticOptions,
+  search,
 }: DataTableFacetedFilterProps<TData, TValue>) {
   const facets = column?.getFacetedUniqueValues()
   const selectedValues = new Set(column?.getFilterValue() as string[])
+
+  const searchState = useSearchOptions(search ?? { fetchOptions: async () => [] }, Array.from(selectedValues))
+  const options = search ? searchState.options : (staticOptions ?? [])
 
   return (
     <Popover>
@@ -79,11 +99,27 @@ export function DataTableFacetedFilter<TData, TValue>({
           )}
         </Button>
       </PopoverTrigger>
-      <PopoverContent className='w-50 p-0' align='start'>
-        <Command>
-          <CommandInput placeholder={title} />
+      <PopoverContent className='w-64 p-0' align='start'>
+        {/* `shouldFilter={false}` in search mode: options are already
+            filtered server-side by useSearchOptions, cmdk's own local
+            substring filter would just re-narrow an already-narrow,
+            already-correct list (and would hide the pinned/selected
+            options that don't match the current query). */}
+        <Command shouldFilter={!search}>
+          <CommandInput
+            placeholder={search ? `Search ${title?.toLowerCase() ?? ''}...` : title}
+            onValueChange={search ? searchState.onSearchChange : undefined}
+          />
           <CommandList>
-            <CommandEmpty>No results found.</CommandEmpty>
+            <CommandEmpty>
+              {search && searchState.isLoading ? (
+                <span className='inline-flex items-center gap-2'>
+                  <Loader2 className='size-4 animate-spin' /> Searching...
+                </span>
+              ) : (
+                'No results found.'
+              )}
+            </CommandEmpty>
             <CommandGroup>
               {options.map((option) => {
                 const isSelected = selectedValues.has(option.value)
@@ -112,11 +148,15 @@ export function DataTableFacetedFilter<TData, TValue>({
                     >
                       <CheckIcon className={cn('h-4 w-4 text-background')} />
                     </div>
-                    {option.icon && (
+                    {'icon' in option && option.icon && (
                       <option.icon className='size-4 text-muted-foreground' />
                     )}
                     <span>{option.label}</span>
-                    {facets?.get(option.value) && (
+                    {/* Faceted counts come from getFacetedUniqueValues(),
+                        derived from the table's own loaded rows — meaningless
+                        against server-search results, so only shown for the
+                        static (small, upfront-loaded) option set. */}
+                    {!search && facets?.get(option.value) && (
                       <span className='ms-auto flex h-4 w-4 items-center justify-center font-mono text-xs'>
                         {facets.get(option.value)}
                       </span>

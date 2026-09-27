@@ -1,10 +1,27 @@
 import { Cross2Icon, MagnifyingGlassIcon } from '@radix-ui/react-icons'
 import { type Table } from '@tanstack/react-table'
+import { type SearchOptionsConfig } from 'tanstack-pagekit'
 import { Button } from '@/components/ui/button'
 import { DataTableFacetedFilter } from './faceted-filter'
 import { DataTableRangeFilter } from './range-filter'
 import { DataTableTextFilter } from './text-filter'
 import { DataTableViewOptions } from './view-options'
+
+type FacetedFilterConfig = {
+  columnId: string
+  title: string
+} & (
+  | {
+      /** Fixed, small value set (status, currency...) loaded upfront. */
+      options: { label: string; value: string; icon?: React.ComponentType<{ className?: string }> }[]
+      search?: never
+    }
+  | {
+      /** Value set too large to load upfront — server search instead, same as a select-autocomplete form field. */
+      search: SearchOptionsConfig
+      options?: never
+    }
+)
 
 type DataTableToolbarProps<TData> = {
   table: Table<TData>
@@ -12,15 +29,7 @@ type DataTableToolbarProps<TData> = {
   searchTitle?: string
   searchPlaceholder?: string
   searchKey?: string
-  filters?: {
-    columnId: string
-    title: string
-    options: {
-      label: string
-      value: string
-      icon?: React.ComponentType<{ className?: string }>
-    }[]
-  }[]
+  filters?: FacetedFilterConfig[]
   /** Filtres par intervalle (min/max) pour des colonnes number/date/datetime. */
   rangeFilters?: {
     columnId: string
@@ -80,6 +89,7 @@ export function DataTableToolbar<TData>({
                 column={column}
                 title={filter.title}
                 options={filter.options}
+                search={filter.search}
               />
             )
           })}

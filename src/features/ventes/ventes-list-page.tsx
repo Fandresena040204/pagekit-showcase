@@ -8,20 +8,10 @@ import { Button } from '@/components/ui/button'
 import { Main } from '@/components/layout/main'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { DataTablePagination, DataTableToolbar } from '@/components/data-table'
-import { useCustomers } from '@/features/customers/resource'
+import { customersApi, useCustomers } from '@/features/customers/resource'
 import { useVentesPage } from './resource'
 import { createVentesColumns } from './ventes-columns'
 
-/**
- * List page: pagination and filters are sent to the real Django backend
- * (server-side), sorting stays client-side on the loaded page via TanStack
- * Table (`getSortedRowModel`, wired inside `useListPage`). `searchMode:
- * 'button'` means typing in the search box or toggling a checkbox filter
- * only updates the table's own UI/URL state — the actual backend query
- * only refreshes when the "Search" button (`search()`) is clicked, same
- * "popup filter, committed on Search" UX as poc-vente-front's
- * `ventes-table.tsx` (`appliedFilters` state there).
- */
 export function VentesListPage() {
   const router = useTanStackRouterAdapter()
 
@@ -39,19 +29,12 @@ export function VentesListPage() {
     pagination: { defaultPageSize: 10 },
     globalFilter: { key: 'search' },
     searchMode: 'button',
-    // Backend query params (status, customer, total_min/total_max) are
-    // derived automatically from this config — no buildFilters needed.
     columnFilters: [
       { columnId: 'status', searchKey: 'status', type: 'array' },
       { columnId: 'customer', searchKey: 'customer', type: 'array' },
       { columnId: 'total', type: 'range', minSearchKey: 'total_min', maxSearchKey: 'total_max' },
     ],
   })
-
-  const customerFacetOptions = useMemo(
-    () => Object.entries(customerNameById).map(([value, label]) => ({ label, value })),
-    [customerNameById]
-  )
 
   return (
     <Main className='flex flex-1 flex-col gap-4 sm:gap-6'>
@@ -90,7 +73,18 @@ export function VentesListPage() {
               {
                 columnId: 'customer',
                 title: 'Customer',
-                options: customerFacetOptions,
+                // Customers can number in the thousands — nothing loaded
+                // upfront, same debounced server search as the customer
+                // select-autocomplete in the Vente form (fields.tsx), just
+                // multi-select here.
+                search: {
+                  fetchOptions: (query) =>
+                    customersApi
+                      .fetchList({ page: 1, pageSize: 20, search: query })
+                      .then((r) => r.results.map((c) => ({ label: c.name, value: c.id }))),
+                  resolveInitial: (id) =>
+                    customersApi.fetchOne(id).then((c) => ({ label: c.name, value: c.id })),
+                },
               },
             ]}
             rangeFilters={[{ columnId: 'total', title: 'Total', type: 'number' }]}
