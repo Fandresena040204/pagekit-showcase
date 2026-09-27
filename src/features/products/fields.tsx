@@ -1,5 +1,5 @@
 import { Badge } from '@/components/ui/badge'
-import { type FieldDescriptor, type FieldOption } from 'tanstack-pagekit'
+import { type FieldDescriptor } from 'tanstack-pagekit'
 import { productCategoriesApi } from '@/features/product-categories/resource'
 import type { Product, ProductForm } from '@/features/types'
 
@@ -20,10 +20,12 @@ export const PRICE_FIELD: FieldDescriptor<Product> = {
   label: 'Default price',
   type: 'number',
 }
+// `category_name` is resolved server-side (ProductSerializer.get_category_name)
+// — no `resolvedOptions`/client-side lookup needed.
 export const CATEGORY_FIELD: FieldDescriptor<Product> = {
-  name: 'category',
+  name: 'category_name',
   label: 'Category',
-  type: 'select',
+  type: 'text',
 }
 // Demonstrates the range (min/max) filter on a date column — the
 // continuous-value counterpart to a faceted multi-select (see Ventes.status).
@@ -37,10 +39,6 @@ export const ACTIVE_FIELD: FieldDescriptor<Product> = {
       {row.is_active ? 'Active' : 'Inactive'}
     </Badge>
   ),
-}
-
-export function categoryOptions(categoryNameById: Record<string, string>): FieldOption[] {
-  return Object.entries(categoryNameById).map(([value, label]) => ({ value, label }))
 }
 
 // --- Form fields ---

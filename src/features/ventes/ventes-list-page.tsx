@@ -8,19 +8,14 @@ import { Button } from '@/components/ui/button'
 import { Main } from '@/components/layout/main'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { DataTablePagination, DataTableToolbar } from '@/components/data-table'
-import { customersApi, useCustomers } from '@/features/customers/resource'
+import { customersApi } from '@/features/customers/resource'
 import { useVentesPage } from './resource'
 import { createVentesColumns } from './ventes-columns'
 
 export function VentesListPage() {
   const router = useTanStackRouterAdapter()
 
-  const { data: customers, isLoading: isLoadingCustomers } = useCustomers()
-  const customerNameById = useMemo(
-    () => Object.fromEntries((customers ?? []).map((c) => [c.id, c.name])),
-    [customers]
-  )
-  const columns = useMemo(() => createVentesColumns(customerNameById), [customerNameById])
+  const columns = useMemo(() => createVentesColumns(), [])
 
   const { table, isLoading, isError, search: runSearch } = useListPage({
     router,
@@ -31,7 +26,10 @@ export function VentesListPage() {
     columnFilters: [
       { columnId: 'id', searchKey: 'id', type: 'string' },
       { columnId: 'status', searchKey: 'status', type: 'array' },
-      { columnId: 'customer', searchKey: 'customer', type: 'array' },
+      // Column id is `customer_name` (what's displayed/sorted) but the
+      // backend param stays `customer` (still filters by id — the facet's
+      // selected VALUES are ids, only the column's own cell shows a name).
+      { columnId: 'customer_name', searchKey: 'customer', type: 'array' },
       { columnId: 'total', type: 'range', minSearchKey: 'total_min', maxSearchKey: 'total_max' },
     ],
   })
@@ -48,7 +46,7 @@ export function VentesListPage() {
         </Button>
       </div>
 
-      {isLoading || isLoadingCustomers ? (
+      {isLoading ? (
         <div className='flex flex-1 items-center justify-center'>
           <Loader2 className='animate-spin' />
         </div>
@@ -70,7 +68,7 @@ export function VentesListPage() {
                 ],
               },
               {
-                columnId: 'customer',
+                columnId: 'customer_name',
                 title: 'Customer',
                 search: {
                   fetchOptions: (query) =>

@@ -1,23 +1,16 @@
-import { useMemo } from 'react'
 import { Link, useParams } from '@tanstack/react-router'
 import { Loader2 } from 'lucide-react'
 import { renderDetailField } from 'tanstack-pagekit'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Main } from '@/components/layout/main'
-import { useProductCategories } from '@/features/product-categories/resource'
 import { useProduct } from './resource'
-import { CATEGORY_FIELD, NAME_FIELD, PRICE_FIELD, SKU_FIELD, categoryOptions } from './fields'
+import { CATEGORY_FIELD, NAME_FIELD, PRICE_FIELD, SKU_FIELD } from './fields'
 
 /** Reuses the SAME `FieldDescriptor`s as the list columns (`fields.tsx`) via `renderDetailField` instead of `renderColumn`. */
 export function ProductsDetailPage() {
   const { id } = useParams({ strict: false }) as { id: string }
   const { data: product, isLoading, isError } = useProduct(id)
-  const { data: categories } = useProductCategories()
-  const categoryNameById = useMemo(
-    () => Object.fromEntries((categories ?? []).map((c) => [c.id, c.name])),
-    [categories]
-  )
 
   if (isLoading) {
     return (
@@ -36,7 +29,7 @@ export function ProductsDetailPage() {
   }
 
   const fields = [NAME_FIELD, SKU_FIELD, PRICE_FIELD, CATEGORY_FIELD].map((descriptor) =>
-    renderDetailField(descriptor, product, { resolvedOptions: categoryOptions(categoryNameById) })
+    renderDetailField(descriptor, product)
   )
 
   return (

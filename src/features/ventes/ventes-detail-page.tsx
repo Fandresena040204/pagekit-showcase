@@ -15,34 +15,17 @@ import { Button } from '@/components/ui/button'
 import { Main } from '@/components/layout/main'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { useProducts } from '@/features/products/resource'
-import { useCustomers } from '@/features/customers/resource'
 import { useLivraisonsByVente } from '@/features/livraisons/resource'
 import { usePaiementsByVente } from '@/features/paiements/resource'
 import type { Livraison, Paiement, Vente, VenteLigne } from '@/features/types'
 import { useAnnulerVente, useValiderVente, useVente } from './resource'
-import { CURRENCY_FIELD, CUSTOMER_FIELD, ID_FIELD, STATUS_FIELD, TOTAL_FIELD, customerOptions } from './fields'
+import { CURRENCY_FIELD, CUSTOMER_FIELD, ID_FIELD, STATUS_FIELD, TOTAL_FIELD } from './fields'
 
 const TABS = ['lignes', 'livraisons', 'paiements'] as const
 
-/**
- * Tabbed detail page — an addition beyond poc-vente-front (which has no
- * `/ventes/$id` detail route, only list + form): it demonstrates
- * `useDetailPage`/`useTabState` (active tab persisted in the URL) and the
- * "Lignes" tab reusing TanStack Table via `useClientTable`, as required.
- * The header reuses the SAME `FieldDescriptor`s as the list columns
- * (`renderDetailField` instead of `renderColumn`) — declared once in
- * `fields.tsx`.
- */
 export function VentesDetailPage() {
   const { id } = useParams({ strict: false }) as { id: string }
   const router = useTanStackRouterAdapter()
-
-  const { data: customers } = useCustomers()
-  const customerNameById = useMemo(
-    () => Object.fromEntries((customers ?? []).map((c) => [c.id, c.name])),
-    [customers]
-  )
 
   const { entity, isLoading, isError, activeTab, setActiveTab, isTabActive } = useDetailPage<Vente>({
     router,
@@ -71,10 +54,7 @@ export function VentesDetailPage() {
   }
 
   const headerFields = [ID_FIELD, CUSTOMER_FIELD, STATUS_FIELD, CURRENCY_FIELD, TOTAL_FIELD].map((descriptor) =>
-    renderDetailField(descriptor, entity, {
-      resolvedOptions: customerOptions(customerNameById),
-      renderLink,
-    })
+    renderDetailField(descriptor, entity, { renderLink })
   )
 
   return (
@@ -159,27 +139,22 @@ export function VentesDetailPage() {
 }
 
 function LignesTab({ lines }: { lines: VenteLigne[] }) {
-  const { data: products } = useProducts()
-  const productNameById = useMemo(
-    () => Object.fromEntries((products ?? []).map((p) => [p.id, `${p.name} (${p.sku})`])),
-    [products]
-  )
-
+  // `product_name`/`product_sku` are resolved server-side
+  // (VenteLigneSerializer) — no separate product fetch/lookup needed.
   const columns: ColumnDef<VenteLigne>[] = useMemo(
     () => [
-      renderColumn(
-        { name: 'product', label: 'Product', type: 'select' },
-        { resolvedOptions: Object.entries(productNameById).map(([value, label]) => ({ value, label })) }
-      ),
+      renderColumn({
+        name: 'product_name',
+        label: 'Product',
+        type: 'text',
+        render: (row) => `${row.product_name} (${row.product_sku})`,
+      }),
       renderColumn({ name: 'quantity', label: 'Quantity', type: 'number' }),
       renderColumn({ name: 'unit_price', label: 'Unit price', type: 'number' }),
     ],
-    [productNameById]
+    []
   )
 
-  // TanStack Table, client-side (the lines of one vente are already fully
-  // loaded — no server pagination needed here), exactly like the list
-  // page's table but via `useClientTable` instead of `useListPage`.
   const { table } = useClientTable({ data: lines, columns, paginated: false })
 
   return <RenderTanstackTable table={table} columnCount={columns.length} />
@@ -208,10 +183,7 @@ function LivraisonsTab({ venteId }: { venteId: string }) {
     ],
     []
   )
-
-  // Every tab's table goes through TanStack Table, same as the top-level
-  // list page — here via `useClientTable` since a vente's own deliveries
-  // are already a small, fully-loaded set (no server pagination needed).
+  
   const { table } = useClientTable({ data: data?.results ?? [], columns, paginated: false })
 
   if (isLoading) return <Loader2 className='animate-spin' />

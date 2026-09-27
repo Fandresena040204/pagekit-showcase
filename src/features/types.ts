@@ -40,6 +40,8 @@ export type Product = {
   sku: string
   default_price: string
   category: string | null
+  /** Resolved server-side (ProductSerializer.get_category_name) — null when `category` is null. */
+  category_name: string | null
   description: string
   is_active: boolean
 }
@@ -60,6 +62,9 @@ export type VenteCurrency = 'MGA' | 'EUR' | 'USD'
 export type VenteLigne = {
   id: string
   product: string
+  /** Resolved server-side (VenteLigneSerializer) — no client-side product lookup needed. */
+  product_name: string
+  product_sku: string
   quantity: string
   unit_price: string
   discount_percent: string
@@ -71,6 +76,8 @@ export type Vente = {
   created_at: string
   updated_at: string
   customer: string
+  /** Resolved server-side (VenteSerializer.customer_name) — no client-side customer lookup needed. */
+  customer_name: string
   status: VenteStatus
   priority: VentePriority
   currency: VenteCurrency

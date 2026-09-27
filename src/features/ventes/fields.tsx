@@ -26,10 +26,14 @@ export const ID_FIELD: FieldDescriptor<Vente> = {
   linkTo: (row) => ({ to: '/ventes/$id', params: { id: row.id } }),
 }
 
+// `customer_name` (resolved server-side) drives display, `customer` (the
+// raw id) drives the link target — same "display one field, link via
+// another" pattern as Product.name (see products/fields.tsx). No
+// `resolvedOptions`/client-side lookup needed at all anymore.
 export const CUSTOMER_FIELD: FieldDescriptor<Vente> = {
-  name: 'customer',
+  name: 'customer_name',
   label: 'Customer',
-  type: 'select',
+  type: 'text',
   clickable: true,
   linkTo: (row) => ({ to: '/customers/$id', params: { id: row.customer } }),
 }
@@ -55,10 +59,6 @@ export const CURRENCY_FIELD: FieldDescriptor<Vente> = {
   name: 'currency',
   label: 'Devise',
   type: 'text',
-}
-
-export function customerOptions(customerNameById: Record<string, string>): FieldOption[] {
-  return Object.entries(customerNameById).map(([value, label]) => ({ value, label }))
 }
 
 // --- Form field descriptors: header (parent) fields of "NOUVELLE FACTURE" ---

@@ -8,19 +8,13 @@ import { Button } from '@/components/ui/button'
 import { Main } from '@/components/layout/main'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { DataTablePagination, DataTableToolbar } from '@/components/data-table'
-import { useProductCategories } from '@/features/product-categories/resource'
 import { useProductsPage } from './resource'
 import { createProductsColumns } from './products-columns'
 
 export function ProductsListPage() {
   const router = useTanStackRouterAdapter()
 
-  const { data: categories, isLoading: isLoadingCategories } = useProductCategories()
-  const categoryNameById = useMemo(
-    () => Object.fromEntries((categories ?? []).map((c) => [c.id, c.name])),
-    [categories]
-  )
-  const columns = useMemo(() => createProductsColumns(categoryNameById), [categoryNameById])
+  const columns = useMemo(() => createProductsColumns(), [])
 
   const { table, isLoading, isError, search: runSearch } = useListPage({
     router,
@@ -47,7 +41,7 @@ export function ProductsListPage() {
         </Button>
       </div>
 
-      {isLoading || isLoadingCategories ? (
+      {isLoading ? (
         <div className='flex flex-1 items-center justify-center'>
           <Loader2 className='animate-spin' />
         </div>
