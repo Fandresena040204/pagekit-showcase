@@ -79,9 +79,11 @@ export function UsersListPage() {
     resource: { useListPage: useUsersPage },
     columns,
     pagination: { defaultPageSize: 10 },
-    globalFilter: { key: 'search' },
     searchMode: 'button',
-    columnFilters: [{ columnId: 'roles', searchKey: 'roles', type: 'array' }],
+    columnFilters: [
+      { columnId: 'username', searchKey: 'username', type: 'string' },
+      { columnId: 'roles', searchKey: 'roles', type: 'array' },
+    ],
   })
 
   return (
@@ -101,8 +103,7 @@ export function UsersListPage() {
         <div className='flex flex-1 flex-col gap-4'>
           <DataTableToolbar
             table={table}
-            searchTitle='Username'
-            searchPlaceholder='Search username...'
+            textFilters={[{ columnId: 'username', title: 'Username', placeholder: 'Search username...' }]}
             filters={[{ columnId: 'roles', title: 'Role', options: roleOptions }]}
             onSearch={runSearch}
           />

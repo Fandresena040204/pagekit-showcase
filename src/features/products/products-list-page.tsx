@@ -28,10 +28,6 @@ export function ProductsListPage() {
     columns,
     pagination: { defaultPageSize: 10 },
     searchMode: 'button',
-    // Name and SKU are two independent filters (their own backend param
-    // each) — not one combined global search, which would need an
-    // ambiguous "Name or SKU..." placeholder for what are really two
-    // different questions.
     columnFilters: [
       { columnId: 'name', searchKey: 'name', type: 'string' },
       { columnId: 'sku', searchKey: 'sku', type: 'string' },

@@ -47,8 +47,8 @@ export function RolesListPage() {
     resource: { useListPage: useRolesPage },
     columns,
     pagination: { defaultPageSize: 10 },
-    globalFilter: { key: 'search' },
     searchMode: 'button',
+    columnFilters: [{ columnId: 'name', searchKey: 'name', type: 'string' }],
   })
 
   return (
@@ -71,7 +71,11 @@ export function RolesListPage() {
         <p className='text-destructive'>Failed to load roles.</p>
       ) : (
         <div className='flex flex-1 flex-col gap-4'>
-          <DataTableToolbar table={table} searchTitle='Name' searchPlaceholder='Search name...' onSearch={runSearch} />
+          <DataTableToolbar
+            table={table}
+            textFilters={[{ columnId: 'name', title: 'Name', placeholder: 'Search name...' }]}
+            onSearch={runSearch}
+          />
           <div className='overflow-hidden rounded-md border'>
             <Table>
               <TableHeader>

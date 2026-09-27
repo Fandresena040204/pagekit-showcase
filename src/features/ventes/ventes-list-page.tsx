@@ -27,9 +27,9 @@ export function VentesListPage() {
     resource: { useListPage: useVentesPage },
     columns,
     pagination: { defaultPageSize: 10 },
-    globalFilter: { key: 'search' },
     searchMode: 'button',
     columnFilters: [
+      { columnId: 'id', searchKey: 'id', type: 'string' },
       { columnId: 'status', searchKey: 'status', type: 'array' },
       { columnId: 'customer', searchKey: 'customer', type: 'array' },
       { columnId: 'total', type: 'range', minSearchKey: 'total_min', maxSearchKey: 'total_max' },
@@ -58,8 +58,7 @@ export function VentesListPage() {
         <div className='flex flex-1 flex-col gap-4'>
           <DataTableToolbar
             table={table}
-            searchTitle='ID'
-            searchPlaceholder='Rechercher par ID...'
+            textFilters={[{ columnId: 'id', title: 'ID', placeholder: 'Rechercher par ID...' }]}
             filters={[
               {
                 columnId: 'status',

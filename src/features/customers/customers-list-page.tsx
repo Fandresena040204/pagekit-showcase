@@ -21,8 +21,11 @@ export function CustomersListPage() {
     resource: { useListPage: useCustomersPage },
     columns,
     pagination: { defaultPageSize: 10 },
-    globalFilter: { key: 'search' },
     searchMode: 'button',
+    columnFilters: [
+      { columnId: 'name', searchKey: 'name', type: 'string' },
+      { columnId: 'email', searchKey: 'email', type: 'string' },
+    ],
   })
 
   return (
@@ -47,8 +50,10 @@ export function CustomersListPage() {
         <div className='flex flex-1 flex-col gap-4'>
           <DataTableToolbar
             table={table}
-            searchTitle='Name'
-            searchPlaceholder='Search name or email...'
+            textFilters={[
+              { columnId: 'name', title: 'Name', placeholder: 'Search name...' },
+              { columnId: 'email', title: 'Email', placeholder: 'Search email...' },
+            ]}
             onSearch={runSearch}
           />
           <div className='overflow-hidden rounded-md border'>
