@@ -43,6 +43,17 @@ export type CustomerForm = Omit<Customer, 'id' | 'created_at' | 'updated_at' | '
   birth_date: string
 }
 
+export type Fournisseur = {
+  id: string
+  created_at: string
+  updated_at: string
+  name: string
+  email: string
+  is_active: boolean
+}
+
+export type FournisseurForm = Omit<Fournisseur, 'id' | 'created_at' | 'updated_at'>
+
 export type ProductCategory = components['schemas']['ProductCategory']
 
 // = the generated `ProductRead` schema (backed by `ProductListView`, the DB
