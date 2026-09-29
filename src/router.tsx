@@ -9,6 +9,9 @@ import { HomePage } from './home-page'
 import { CustomerDetailPage } from '@/features/customers/customer-detail-page'
 import { CustomersFormPage } from '@/features/customers/customers-form-page'
 import { CustomersListPage } from '@/features/customers/customers-list-page'
+import { FournisseurDetailPage } from '@/features/fournisseurs/fournisseur-detail-page'
+import { FournisseursFormPage } from '@/features/fournisseurs/fournisseurs-form-page'
+import { FournisseursListPage } from '@/features/fournisseurs/fournisseurs-list-page'
 import { ProductsDetailPage } from '@/features/products/products-detail-page'
 import { ProductsFormPage } from '@/features/products/products-form-page'
 import { ProductsListPage } from '@/features/products/products-list-page'
@@ -118,6 +121,31 @@ const customersEditRoute = createRoute({
   component: CustomersFormPage,
 })
 
+const fournisseurDetailRoute = createRoute({
+  getParentRoute: () => authenticatedRoute,
+  path: '/fournisseurs/$id',
+  component: FournisseurDetailPage,
+})
+
+const fournisseursListRoute = createRoute({
+  getParentRoute: () => authenticatedRoute,
+  path: '/fournisseurs',
+  component: FournisseursListPage,
+  validateSearch: (search: Record<string, unknown>) => search,
+})
+
+const fournisseursNewRoute = createRoute({
+  getParentRoute: () => authenticatedRoute,
+  path: '/fournisseurs/saisie',
+  component: FournisseursFormPage,
+})
+
+const fournisseursEditRoute = createRoute({
+  getParentRoute: () => authenticatedRoute,
+  path: '/fournisseurs/saisie/$id',
+  component: FournisseursFormPage,
+})
+
 const productsListRoute = createRoute({
   getParentRoute: () => authenticatedRoute,
   path: '/products',
@@ -193,6 +221,10 @@ const routeTree = rootRoute.addChildren([
     customersNewRoute,
     customersEditRoute,
     customerDetailRoute,
+    fournisseursListRoute,
+    fournisseursNewRoute,
+    fournisseursEditRoute,
+    fournisseurDetailRoute,
     productsListRoute,
     productsNewRoute,
     productsEditRoute,

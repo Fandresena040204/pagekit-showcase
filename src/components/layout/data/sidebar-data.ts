@@ -1,4 +1,4 @@
-import { Command, LayoutDashboard, Package, Receipt, ShieldCheck, UserCog, Users } from 'lucide-react'
+import { Command, LayoutDashboard, Package, Receipt, ShieldCheck, Truck, UserCog, Users } from 'lucide-react'
 import { type SidebarData } from '../types'
 
 /**
@@ -36,6 +36,14 @@ export const sidebarData: SidebarData = {
           items: [
             { title: 'Liste', url: '/customers', permission: 'view_customer' },
             { title: 'Saisie', url: '/customers/saisie', permission: 'add_customer' },
+          ],
+        },
+        {
+          title: 'Fournisseurs',
+          icon: Truck,
+          items: [
+            { title: 'Liste', url: '/fournisseurs', permission: 'view_fournisseur' },
+            { title: 'Saisie', url: '/fournisseurs/saisie', permission: 'add_fournisseur' },
           ],
         },
       ],
