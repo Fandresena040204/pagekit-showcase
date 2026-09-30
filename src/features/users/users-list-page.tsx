@@ -12,6 +12,7 @@ import { renderLink } from '@/components/fields/render-link'
 import type { User } from '@/features/types'
 import { useRoles } from '@/features/roles/resource'
 import { useUsersPage } from './resource'
+import { UsersPermissionOverridesDialog } from './users-permission-overrides-dialog'
 import { UsersRolesDialog } from './users-roles-dialog'
 
 const USERNAME_FIELD: FieldDescriptor<User> = {
@@ -40,6 +41,7 @@ function withSortableHeader<TRow>(descriptor: FieldDescriptor<TRow>): Pick<Colum
 export function UsersListPage() {
   const router = useTanStackRouterAdapter()
   const [rolesDialogUser, setRolesDialogUser] = useState<User | null>(null)
+  const [overridesDialogUser, setOverridesDialogUser] = useState<User | null>(null)
 
   const { data: roles } = useRoles()
   const roleOptions = useMemo(() => (roles ?? []).map((r) => ({ label: r.name, value: r.name })), [roles])
@@ -131,6 +133,9 @@ export function UsersListPage() {
                         <Button variant='ghost' size='sm' onClick={() => setRolesDialogUser(row.original)}>
                           Manage roles
                         </Button>
+                        <Button variant='ghost' size='sm' onClick={() => setOverridesDialogUser(row.original)}>
+                          Manage permissions
+                        </Button>
                       </TableCell>
                     </TableRow>
                   ))
@@ -149,6 +154,10 @@ export function UsersListPage() {
       )}
 
       <UsersRolesDialog user={rolesDialogUser} onOpenChange={(open) => !open && setRolesDialogUser(null)} />
+      <UsersPermissionOverridesDialog
+        user={overridesDialogUser}
+        onOpenChange={(open) => !open && setOverridesDialogUser(null)}
+      />
     </Main>
   )
 }

@@ -26,3 +26,15 @@ export const useRemoveRole = createActionHook<{ id: string; role: string }>(
   ({ id, role }) => httpClient.post(`/api/users/${id}/remove_role/`, { role }),
   () => toast.success('Role removed.')
 )
+
+export const useSetPermissionOverride = createActionHook<{ id: string; permission: string; is_allowed: boolean }>(
+  ['users'],
+  ({ id, ...body }) => httpClient.post(`/api/users/${id}/set_permission_override/`, body),
+  () => toast.success('Override updated.')
+)
+
+export const useClearPermissionOverride = createActionHook<{ id: string; permission: string }>(
+  ['users'],
+  ({ id, ...body }) => httpClient.post(`/api/users/${id}/clear_permission_override/`, body),
+  () => toast.success('Override cleared.')
+)
