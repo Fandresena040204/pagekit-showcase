@@ -1,6 +1,6 @@
 import { useNavigate, useParams } from '@tanstack/react-router'
 import { Loader2, Plus, Trash2 } from 'lucide-react'
-import { useMasterDetailForm, useResourceFormState } from 'tanstack-pagekit'
+import { useMasterDetailForm } from 'tanstack-pagekit'
 import { Button } from '@/components/ui/button'
 import { Main } from '@/components/layout/main'
 import { RenderFormField } from '@/components/fields/render-form-field'
@@ -41,45 +41,32 @@ export function BonsCommandeFormPage() {
   const { id } = useParams({ strict: false }) as { id?: string }
   const navigate = useNavigate()
 
-  const { currentRow, isEdit, isLoading, notFound, isPending, submit } = useResourceFormState<
+  const { form, addLine, removeLine, isEdit, isLoading, notFound, isPending } = useMasterDetailForm<
     BonCommande,
-    BonCommandeForm
-  >(id, {
-    useOne: useBonCommande,
-    useCreate: useCreateBonCommande,
-    useUpdate: useUpdateBonCommande,
-  })
-
-  const defaultValues: BonCommandeForm =
-    isEdit && currentRow
-      ? {
-          customer: currentRow.customer,
-          currency: currentRow.currency,
-          discount_percent: currentRow.discount_percent,
-          expected_delivery_date: currentRow.expected_delivery_date ?? '',
-          lines: currentRow.lines.map((l) => ({
-            id: l.id,
-            product: l.product,
-            quantity: l.quantity,
-            unit_price: l.unit_price,
-            discount_percent: l.discount_percent,
-            tva_rate: l.tva_rate,
-          })),
-        }
-      : emptyValues
-
-  const { form, addLine, removeLine } = useMasterDetailForm<
     Omit<BonCommandeForm, 'lines'>,
     BonCommandeLineForm,
     'lines'
   >({
-    defaultValues,
+    id,
+    resource: { useOne: useBonCommande, useCreate: useCreateBonCommande, useUpdate: useUpdateBonCommande },
+    emptyValues,
+    toFormValues: (currentRow) => ({
+      customer: currentRow.customer,
+      currency: currentRow.currency,
+      discount_percent: currentRow.discount_percent,
+      expected_delivery_date: currentRow.expected_delivery_date ?? '',
+      lines: currentRow.lines.map((l) => ({
+        id: l.id,
+        product: l.product,
+        quantity: l.quantity,
+        unit_price: l.unit_price,
+        discount_percent: l.discount_percent,
+        tva_rate: l.tva_rate,
+      })),
+    }),
     linesFieldName: 'lines',
     defaultLine: emptyLine,
-    onSubmit: async (values) => {
-      await submit(values as BonCommandeForm)
-      navigate({ to: '/bons-commande' })
-    },
+    onSuccess: () => navigate({ to: '/bons-commande' }),
   })
 
   if (isLoading) {

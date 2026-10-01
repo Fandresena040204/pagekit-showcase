@@ -100,7 +100,6 @@ const ventesEditRoute = createRoute({
   getParentRoute: () => authenticatedRoute,
   path: '/ventes/saisie/$id',
   component: VentesFormPage,
-  validateSearch: prefillSearchSchema,
 })
 
 const bonCommandeDetailRoute = createRoute({

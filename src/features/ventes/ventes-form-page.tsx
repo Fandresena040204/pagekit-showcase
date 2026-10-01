@@ -1,6 +1,6 @@
 import { useNavigate, useParams, useSearch } from '@tanstack/react-router'
 import { Loader2, Plus, Trash2 } from 'lucide-react'
-import { useMasterDetailForm, useResourceFormState, type PrefillOptions } from 'tanstack-pagekit'
+import { useMasterDetailForm, type PrefillOptions } from 'tanstack-pagekit'
 import { Button } from '@/components/ui/button'
 import { Main } from '@/components/layout/main'
 import { RenderFormField } from '@/components/fields/render-form-field'
@@ -51,23 +51,12 @@ const emptyValues: VenteForm = {
  * same way the list pages already do.
  */
 const prefillSources: PrefillOptions<VenteForm>['sources'] = {
-  // The real, production source: a BonCommande has its own `to_vente_defaults`
-  // endpoint (apps/ventes/views/bon_commande_viewset.py) that returns a
-  // payload already shaped like VenteForm — wired here exactly as
+  // A BonCommande has its own `to_vente_defaults` endpoint
+  // (apps/ventes/views/bon_commande_viewset.py) that returns a payload
+  // already shaped like VenteForm — wired here exactly as
   // bons-commande-detail-page.tsx's "Vendre" button expects
   // (`prefillSource: 'bon_commande'`).
   bon_commande: (id) => bonsCommandeApi.customGet<Partial<VenteForm>>(`${id}/to_vente_defaults/`),
-
-  // DEV-ONLY fixtures covering the 2 merge edge cases a real BonCommande
-  // can't exercise on its own (it always has both a customer and at least
-  // one line — see BonCommandeSerializer.validate_lines). Not reachable
-  // from any UI button; navigate directly to test them:
-  //   /ventes/saisie?prefillSource=test_mother&prefillId=x
-  //   /ventes/saisie?prefillSource=test_lines&prefillId=x
-  test_mother: async () => ({ customer: 'CUS00001', currency: 'EUR', discount_percent: '10' }),
-  test_lines: async () => ({
-    lines: [{ product: 'PRD00001', quantity: '3', unit_price: '9.99', discount_percent: '0', tva_rate: '20' }],
-  }),
 }
 
 export function VentesFormPage() {
@@ -78,53 +67,43 @@ export function VentesFormPage() {
   }
   const navigate = useNavigate()
 
-  // isEdit/isLoading/notFound/create-vs-update bookkeeping lives in the
-  // library (same primitive useResourceForm uses for a plain form) —
-  // useMasterDetailForm below only needs the resolved defaultValues and a
-  // plain onSubmit that hands the payload to `submit`.
-  const { currentRow, isEdit, isLoading, notFound, isPending, submit, prefillDefaults } = useResourceFormState<
+  // isEdit/isLoading/notFound/create-vs-update bookkeeping, and resolving
+  // defaultValues (edit row, or a prefill source, or emptyValues), all live
+  // in the library — this page only supplies field mapping (toFormValues),
+  // the available prefill sources, and what happens after save.
+  const { form, addLine, removeLine, breakdown, isEdit, isLoading, notFound, isPending } = useMasterDetailForm<
     Vente,
-    VenteForm
-  >(
-    id,
-    { useOne: useVente, useCreate: useCreateVente, useUpdate: useUpdateVente },
-    { emptyValues, prefillSource, prefillId, prefill: { sources: prefillSources } }
-  )
-
-  const defaultValues: VenteForm =
-    isEdit && currentRow
-      ? {
-          customer: currentRow.customer,
-          currency: currentRow.currency,
-          discount_percent: currentRow.discount_percent,
-          expected_delivery_date: currentRow.expected_delivery_date ?? '',
-          lines: currentRow.lines.map((l) => ({
-            id: l.id,
-            product: l.product,
-            quantity: l.quantity,
-            unit_price: l.unit_price,
-            discount_percent: l.discount_percent,
-            tva_rate: l.tva_rate,
-          })),
-        }
-      : (prefillDefaults ?? emptyValues)
-
-  const { form, addLine, removeLine, breakdown } = useMasterDetailForm<
     Omit<VenteForm, 'lines'>,
     VenteLineForm,
     'lines',
     VenteBreakdown
   >({
-    defaultValues,
+    id,
+    resource: { useOne: useVente, useCreate: useCreateVente, useUpdate: useUpdateVente },
+    emptyValues,
+    toFormValues: (currentRow) => ({
+      customer: currentRow.customer,
+      currency: currentRow.currency,
+      discount_percent: currentRow.discount_percent,
+      expected_delivery_date: currentRow.expected_delivery_date ?? '',
+      lines: currentRow.lines.map((l) => ({
+        id: l.id,
+        product: l.product,
+        quantity: l.quantity,
+        unit_price: l.unit_price,
+        discount_percent: l.discount_percent,
+        tva_rate: l.tva_rate,
+      })),
+    }),
     linesFieldName: 'lines',
     defaultLine: emptyLine,
+    prefillSource,
+    prefillId,
+    prefill: { sources: prefillSources },
     computed: {
       breakdown: (lines, values) => computeVenteBreakdown(lines, values.discount_percent),
     },
-    onSubmit: async (values) => {
-      await submit(values as VenteForm)
-      navigate({ to: '/ventes' })
-    },
+    onSuccess: () => navigate({ to: '/ventes' }),
   })
 
   if (isLoading) {
