@@ -99,8 +99,8 @@ importers:
         specifier: ^4.2.2
         version: 4.3.3
       tanstack-pagekit:
-        specifier: npm:@fandresena040204/tanstack-pagekit@^0.1.0
-        version: '@fandresena040204/tanstack-pagekit@0.1.0(@tanstack/react-form@1.33.5(react-dom@19.3.0(react@19.3.0))(react@19.3.0))(@tanstack/react-query@5.103.2(react@19.3.0))(@tanstack/react-router@1.170.39(react-dom@19.3.0(react@19.3.0))(react@19.3.0))(@tanstack/react-table@8.21.3(react-dom@19.3.0(react@19.3.0))(react@19.3.0))(react@19.3.0)'
+        specifier: link:../tanstack-pagekit
+        version: link:../tanstack-pagekit
       tw-animate-css:
         specifier: ^1.4.0
         version: 1.4.0
@@ -142,15 +142,6 @@ packages:
   '@babel/helper-validator-identifier@7.29.7':
     resolution: {integrity: sha512-qehxGkRj55h/ff8EMaJ+cYhyaKlHIxqYDn682wQD7RNp9UujOQsHog2uS0r2vzr4pW+sXf90NeeayjcNaX3fFg==}
     engines: {node: '>=6.9.0'}
-
-  '@fandresena040204/tanstack-pagekit@0.1.0':
-    resolution: {integrity: sha512-h1o+h+sSvCpI87kZ2X3doQ2VneWS5mVH+iIJszVyJqfW3D6YEZ6taEbBbEAnT8YMTDfuzZpY6ofz1iN/cYGnEg==, tarball: https://npm.pkg.github.com/download/@fandresena040204/tanstack-pagekit/0.1.0/1e6aebf1a5cddcdd3d5b17f8bdc554f56f7fd986}
-    peerDependencies:
-      '@tanstack/react-form': ^1.0.0
-      '@tanstack/react-query': ^5.0.0
-      '@tanstack/react-router': ^1.0.0
-      '@tanstack/react-table': ^8.20.0
-      react: ^18.0.0 || ^19.0.0
 
   '@floating-ui/core@1.8.0':
     resolution: {integrity: sha512-0CIZ5itps/8x7BG8dEIhs53BvCUH2PCoogtakwRTut+Arm58sJooJ0AuZhLw2HJYIR5cMLNPBSS728sPho2khQ==}
@@ -1566,14 +1557,6 @@ snapshots:
       picocolors: 1.1.1
 
   '@babel/helper-validator-identifier@7.29.7': {}
-
-  '@fandresena040204/tanstack-pagekit@0.1.0(@tanstack/react-form@1.33.5(react-dom@19.3.0(react@19.3.0))(react@19.3.0))(@tanstack/react-query@5.103.2(react@19.3.0))(@tanstack/react-router@1.170.39(react-dom@19.3.0(react@19.3.0))(react@19.3.0))(@tanstack/react-table@8.21.3(react-dom@19.3.0(react@19.3.0))(react@19.3.0))(react@19.3.0)':
-    dependencies:
-      '@tanstack/react-form': 1.33.5(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
-      '@tanstack/react-query': 5.103.2(react@19.3.0)
-      '@tanstack/react-router': 1.170.39(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
-      '@tanstack/react-table': 8.21.3(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
-      react: 19.3.0
 
   '@floating-ui/core@1.8.0':
     dependencies:

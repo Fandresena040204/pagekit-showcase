@@ -1,9 +1,10 @@
-import { useNavigate, useParams } from '@tanstack/react-router'
+import { useNavigate, useParams, useSearch } from '@tanstack/react-router'
 import { Loader2, Plus, Trash2 } from 'lucide-react'
-import { useMasterDetailForm, useResourceFormState } from 'tanstack-pagekit'
+import { useMasterDetailForm, useResourceFormState, type PrefillOptions } from 'tanstack-pagekit'
 import { Button } from '@/components/ui/button'
 import { Main } from '@/components/layout/main'
 import { RenderFormField } from '@/components/fields/render-form-field'
+import { bonsCommandeApi } from '@/features/bons-commande/resource'
 import type { Vente, VenteForm, VenteLineForm } from '@/features/types'
 import { computeVenteBreakdown, type VenteBreakdown } from './totals'
 import { useCreateVente, useUpdateVente, useVente } from './resource'
@@ -49,19 +50,46 @@ const emptyValues: VenteForm = {
  * `mx-auto`/`max-w-*` centering: this page occupies all of `<Main>` the
  * same way the list pages already do.
  */
+const prefillSources: PrefillOptions<VenteForm>['sources'] = {
+  // The real, production source: a BonCommande has its own `to_vente_defaults`
+  // endpoint (apps/ventes/views/bon_commande_viewset.py) that returns a
+  // payload already shaped like VenteForm — wired here exactly as
+  // bons-commande-detail-page.tsx's "Vendre" button expects
+  // (`prefillSource: 'bon_commande'`).
+  bon_commande: (id) => bonsCommandeApi.customGet<Partial<VenteForm>>(`${id}/to_vente_defaults/`),
+
+  // DEV-ONLY fixtures covering the 2 merge edge cases a real BonCommande
+  // can't exercise on its own (it always has both a customer and at least
+  // one line — see BonCommandeSerializer.validate_lines). Not reachable
+  // from any UI button; navigate directly to test them:
+  //   /ventes/saisie?prefillSource=test_mother&prefillId=x
+  //   /ventes/saisie?prefillSource=test_lines&prefillId=x
+  test_mother: async () => ({ customer: 'CUS00001', currency: 'EUR', discount_percent: '10' }),
+  test_lines: async () => ({
+    lines: [{ product: 'PRD00001', quantity: '3', unit_price: '9.99', discount_percent: '0', tva_rate: '20' }],
+  }),
+}
+
 export function VentesFormPage() {
   const { id } = useParams({ strict: false }) as { id?: string }
+  const { prefillSource, prefillId } = useSearch({ strict: false }) as {
+    prefillSource?: string
+    prefillId?: string
+  }
   const navigate = useNavigate()
 
   // isEdit/isLoading/notFound/create-vs-update bookkeeping lives in the
   // library (same primitive useResourceForm uses for a plain form) —
   // useMasterDetailForm below only needs the resolved defaultValues and a
   // plain onSubmit that hands the payload to `submit`.
-  const { currentRow, isEdit, isLoading, notFound, isPending, submit } = useResourceFormState<Vente, VenteForm>(id, {
-    useOne: useVente,
-    useCreate: useCreateVente,
-    useUpdate: useUpdateVente,
-  })
+  const { currentRow, isEdit, isLoading, notFound, isPending, submit, prefillDefaults } = useResourceFormState<
+    Vente,
+    VenteForm
+  >(
+    id,
+    { useOne: useVente, useCreate: useCreateVente, useUpdate: useUpdateVente },
+    { emptyValues, prefillSource, prefillId, prefill: { sources: prefillSources } }
+  )
 
   const defaultValues: VenteForm =
     isEdit && currentRow
@@ -79,7 +107,7 @@ export function VentesFormPage() {
             tva_rate: l.tva_rate,
           })),
         }
-      : emptyValues
+      : (prefillDefaults ?? emptyValues)
 
   const { form, addLine, removeLine, breakdown } = useMasterDetailForm<
     Omit<VenteForm, 'lines'>,

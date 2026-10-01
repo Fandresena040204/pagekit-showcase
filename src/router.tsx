@@ -6,6 +6,9 @@ import { useAuthStore } from '@/stores/auth-store'
 import { fetchMe } from '@/features/auth/api'
 import { SignInPage } from '@/features/auth/sign-in-page'
 import { HomePage } from './home-page'
+import { BonCommandeDetailPage } from '@/features/bons-commande/bon-commande-detail-page'
+import { BonsCommandeFormPage } from '@/features/bons-commande/bons-commande-form-page'
+import { BonsCommandeListPage } from '@/features/bons-commande/bons-commande-list-page'
 import { CustomerDetailPage } from '@/features/customers/customer-detail-page'
 import { CustomersFormPage } from '@/features/customers/customers-form-page'
 import { CustomersListPage } from '@/features/customers/customers-list-page'
@@ -23,6 +26,7 @@ import { UsersListPage } from '@/features/users/users-list-page'
 import { VentesDetailPage } from '@/features/ventes/ventes-detail-page'
 import { VentesFormPage } from '@/features/ventes/ventes-form-page'
 import { VentesListPage } from '@/features/ventes/ventes-list-page'
+import { prefillSearchSchema } from './lib/prefill-search'
 
 function RootLayout() {
   return (
@@ -88,12 +92,40 @@ const ventesNewRoute = createRoute({
   getParentRoute: () => authenticatedRoute,
   path: '/ventes/saisie',
   component: VentesFormPage,
+  validateSearch: prefillSearchSchema,
 })
+
 
 const ventesEditRoute = createRoute({
   getParentRoute: () => authenticatedRoute,
   path: '/ventes/saisie/$id',
   component: VentesFormPage,
+  validateSearch: prefillSearchSchema,
+})
+
+const bonCommandeDetailRoute = createRoute({
+  getParentRoute: () => authenticatedRoute,
+  path: '/bons-commande/$id',
+  component: BonCommandeDetailPage,
+})
+
+const bonsCommandeListRoute = createRoute({
+  getParentRoute: () => authenticatedRoute,
+  path: '/bons-commande',
+  component: BonsCommandeListPage,
+  validateSearch: (search: Record<string, unknown>) => search,
+})
+
+const bonsCommandeNewRoute = createRoute({
+  getParentRoute: () => authenticatedRoute,
+  path: '/bons-commande/saisie',
+  component: BonsCommandeFormPage,
+})
+
+const bonsCommandeEditRoute = createRoute({
+  getParentRoute: () => authenticatedRoute,
+  path: '/bons-commande/saisie/$id',
+  component: BonsCommandeFormPage,
 })
 
 const customerDetailRoute = createRoute({
@@ -217,6 +249,10 @@ const routeTree = rootRoute.addChildren([
     ventesNewRoute,
     ventesEditRoute,
     ventesDetailRoute,
+    bonsCommandeListRoute,
+    bonsCommandeNewRoute,
+    bonsCommandeEditRoute,
+    bonCommandeDetailRoute,
     customersListRoute,
     customersNewRoute,
     customersEditRoute,
