@@ -1,25 +1,17 @@
-import { useMemo } from 'react'
 import { Link, useParams } from '@tanstack/react-router'
-import { flexRender, type ColumnDef } from '@tanstack/react-table'
 import { Loader2 } from 'lucide-react'
-import {
-  renderDetailField,
-  renderColumn,
-  useClientTable,
-  useDetailPage,
-  useTanStackRouterAdapter,
-} from 'tanstack-pagekit'
+import { renderDetailField, useDetailPage, useTanStackRouterAdapter } from 'tanstack-pagekit'
 import { renderLink } from '@/components/fields/render-link'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Main } from '@/components/layout/main'
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { useLivraisonsByVente } from '@/features/livraisons/resource'
-import { usePaiementsByVente } from '@/features/paiements/resource'
-import type { Livraison, Paiement, Vente, VenteLigne } from '@/features/types'
+import type { Vente } from '@/features/types'
 import { useAnnulerVente, useValiderVente, useVente } from './resource'
 import { CURRENCY_FIELD, CUSTOMER_FIELD, ID_FIELD, STATUS_FIELD, TOTAL_FIELD } from './fields'
+import { LignesTab } from './tabs/lignes-tab'
+import { LivraisonsTab } from './tabs/livraisons-tab'
+import { PaiementsTab } from './tabs/paiements-tab'
 
 const TABS = ['lignes', 'livraisons', 'paiements'] as const
 
@@ -135,135 +127,5 @@ export function VentesDetailPage() {
         </TabsContent>
       </Tabs>
     </Main>
-  )
-}
-
-function LignesTab({ lines }: { lines: VenteLigne[] }) {
-  // `product_name`/`product_sku` are resolved server-side
-  // (VenteLigneSerializer) — no separate product fetch/lookup needed.
-  const columns: ColumnDef<VenteLigne>[] = useMemo(
-    () => [
-      renderColumn({
-        name: 'product_name',
-        label: 'Product',
-        type: 'text',
-        render: (row) => `${row.product_name} (${row.product_sku})`,
-      }),
-      renderColumn({ name: 'quantity', label: 'Quantity', type: 'number' }),
-      renderColumn({ name: 'unit_price', label: 'Unit price', type: 'number' }),
-    ],
-    []
-  )
-
-  const { table } = useClientTable({ data: lines, columns, paginated: false })
-
-  return <RenderTanstackTable table={table} columnCount={columns.length} />
-}
-
-const LIVRAISON_STATUS_LABEL: Record<Livraison['status'], string> = {
-  pending: 'En attente',
-  shipped: 'Expédiée',
-  delivered: 'Livrée',
-}
-
-function LivraisonsTab({ venteId }: { venteId: string }) {
-  const { data, isLoading } = useLivraisonsByVente(venteId, { pageSize: 50 })
-
-  const columns: ColumnDef<Livraison>[] = useMemo(
-    () => [
-      renderColumn({
-        name: 'status',
-        label: 'Statut',
-        type: 'select',
-        options: Object.entries(LIVRAISON_STATUS_LABEL).map(([value, label]) => ({ value, label })),
-      }),
-      renderColumn({ name: 'delivery_date', label: 'Date de livraison', type: 'date' }),
-      renderColumn({ name: 'address', label: 'Adresse', type: 'text' }),
-      renderColumn({ name: 'tracking_number', label: 'N° de suivi', type: 'text' }),
-    ],
-    []
-  )
-  
-  const { table } = useClientTable({ data: data?.results ?? [], columns, paginated: false })
-
-  if (isLoading) return <Loader2 className='animate-spin' />
-  return <RenderTanstackTable table={table} columnCount={columns.length} />
-}
-
-const PAIEMENT_METHOD_LABEL: Record<Paiement['method'], string> = {
-  cash: 'Espèces',
-  card: 'Carte',
-  transfer: 'Virement',
-}
-
-function PaiementsTab({ venteId }: { venteId: string }) {
-  const { data, isLoading } = usePaiementsByVente(venteId, { pageSize: 50 })
-
-  const columns: ColumnDef<Paiement>[] = useMemo(
-    () => [
-      renderColumn({ name: 'amount', label: 'Montant', type: 'number' }),
-      renderColumn({
-        name: 'method',
-        label: 'Méthode',
-        type: 'select',
-        options: Object.entries(PAIEMENT_METHOD_LABEL).map(([value, label]) => ({ value, label })),
-      }),
-      renderColumn({ name: 'paid_at', label: 'Date', type: 'datetime' }),
-      renderColumn({ name: 'reference', label: 'Référence', type: 'text' }),
-    ],
-    []
-  )
-
-  const { table } = useClientTable({ data: data?.results ?? [], columns, paginated: false })
-
-  if (isLoading) return <Loader2 className='animate-spin' />
-  return <RenderTanstackTable table={table} columnCount={columns.length} />
-}
-
-/** Shared TanStack Table renderer for the three tabs above — no logic, purely `flexRender`. */
-function RenderTanstackTable({
-  table,
-  columnCount,
-}: {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  table: any
-  columnCount: number
-}) {
-  return (
-    <div className='overflow-hidden rounded-md border'>
-      <Table>
-        <TableHeader>
-          {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
-          {table.getHeaderGroups().map((headerGroup: any) => (
-            <TableRow key={headerGroup.id}>
-              {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
-              {headerGroup.headers.map((header: any) => (
-                <TableHead key={header.id}>
-                  {header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}
-                </TableHead>
-              ))}
-            </TableRow>
-          ))}
-        </TableHeader>
-        <TableBody>
-          {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
-          {table.getRowModel().rows.map((row: any) => (
-            <TableRow key={row.id}>
-              {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
-              {row.getVisibleCells().map((cell: any) => (
-                <TableCell key={cell.id}>{flexRender(cell.column.columnDef.cell, cell.getContext())}</TableCell>
-              ))}
-            </TableRow>
-          ))}
-          {table.getRowModel().rows.length === 0 && (
-            <TableRow>
-              <TableCell colSpan={columnCount} className='h-16 text-center text-muted-foreground'>
-                No results.
-              </TableCell>
-            </TableRow>
-          )}
-        </TableBody>
-      </Table>
-    </div>
   )
 }

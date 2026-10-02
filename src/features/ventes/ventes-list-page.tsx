@@ -1,20 +1,22 @@
+import { useMemo } from 'react'
 import { Link } from '@tanstack/react-router'
 import { flexRender } from '@tanstack/react-table'
 import { Loader2 } from 'lucide-react'
-import { useListPage, useTanStackRouterAdapter } from 'tanstack-pagekit'
+import { computeColumnAggregates, useListPage, useTanStackRouterAdapter } from 'tanstack-pagekit'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import { Main } from '@/components/layout/main'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
-import { DataTablePagination, DataTableToolbar } from '@/components/data-table'
+import { AggregatesBar, DataTablePagination, DataTableToolbar } from '@/components/data-table'
 import { customersApi } from '@/features/customers/resource'
+import type { Vente } from '@/features/types'
 import { useVentesPage } from './resource'
 import { VENTES_COLUMNS } from './fields'
 
 export function VentesListPage() {
   const router = useTanStackRouterAdapter()
 
-  const { table, isLoading, isError, search: runSearch } = useListPage({
+  const { table, data, isLoading, isError, search: runSearch } = useListPage({
     router,
     resource: { useListPage: useVentesPage },
     columns: VENTES_COLUMNS,
@@ -30,6 +32,16 @@ export function VentesListPage() {
       { columnId: 'total', type: 'range', minSearchKey: 'total_min', maxSearchKey: 'total_max' },
     ],
   })
+
+  // Computed on `data` (the current page's rows only, never the backend's
+  // full count) — recalculates whenever the page/filters change.
+  const aggregates = useMemo(
+    () =>
+      computeColumnAggregates<Vente>(data, [
+        { columnId: 'total', fn: 'sum', accessor: (v) => parseFloat(v.total) },
+      ]),
+    [data]
+  )
 
   return (
     <Main className='flex flex-1 flex-col gap-4 sm:gap-6'>
@@ -80,6 +92,7 @@ export function VentesListPage() {
             rangeFilters={[{ columnId: 'total', title: 'Total', type: 'number' }]}
             onSearch={runSearch}
           />
+          <AggregatesBar items={[{ label: 'Total (page)', value: aggregates.total, format: (v) => v.toFixed(2) }]} />
           <div className='overflow-hidden rounded-md border'>
             <Table>
               <TableHeader>

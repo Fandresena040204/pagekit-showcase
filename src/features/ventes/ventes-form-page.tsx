@@ -1,6 +1,6 @@
 import { useNavigate, useParams } from '@tanstack/react-router'
 import { Loader2, Plus, Trash2 } from 'lucide-react'
-import { useMasterDetailForm, useResourceFormState } from 'tanstack-pagekit'
+import { useMasterDetailForm } from 'tanstack-pagekit'
 import { Button } from '@/components/ui/button'
 import { Main } from '@/components/layout/main'
 import { RenderFormField } from '@/components/fields/render-form-field'
@@ -53,48 +53,40 @@ export function VentesFormPage() {
   const { id } = useParams({ strict: false }) as { id?: string }
   const navigate = useNavigate()
 
-  // isEdit/isLoading/notFound/create-vs-update bookkeeping lives in the
-  // library (same primitive useResourceForm uses for a plain form) —
-  // useMasterDetailForm below only needs the resolved defaultValues and a
-  // plain onSubmit that hands the payload to `submit`.
-  const { currentRow, isEdit, isLoading, notFound, isPending, submit } = useResourceFormState<Vente, VenteForm>(id, {
-    useOne: useVente,
-    useCreate: useCreateVente,
-    useUpdate: useUpdateVente,
-  })
-
-  const defaultValues: VenteForm =
-    isEdit && currentRow
-      ? {
-          customer: currentRow.customer,
-          currency: currentRow.currency,
-          discount_percent: currentRow.discount_percent,
-          expected_delivery_date: currentRow.expected_delivery_date ?? '',
-          lines: currentRow.lines.map((l) => ({
-            id: l.id,
-            product: l.product,
-            quantity: l.quantity,
-            unit_price: l.unit_price,
-            discount_percent: l.discount_percent,
-            tva_rate: l.tva_rate,
-          })),
-        }
-      : emptyValues
-
-  const { form, addLine, removeLine, breakdown } = useMasterDetailForm<
+  // isEdit/isLoading/notFound/create-vs-update bookkeeping now lives inside
+  // useMasterDetailForm itself (it calls useResourceFormState internally) —
+  // the page only supplies how to fetch/save (`resource`) and how to map a
+  // loaded Vente to the form's shape (`toFormValues`).
+  const { form, addLine, removeLine, breakdown, isEdit, isLoading, notFound, isPending } = useMasterDetailForm<
+    Vente,
     Omit<VenteForm, 'lines'>,
     VenteLineForm,
     'lines',
     VenteBreakdown
   >({
-    defaultValues,
+    id,
+    resource: { useOne: useVente, useCreate: useCreateVente, useUpdate: useUpdateVente },
+    emptyValues,
+    toFormValues: (entity) => ({
+      customer: entity.customer,
+      currency: entity.currency,
+      discount_percent: entity.discount_percent,
+      expected_delivery_date: entity.expected_delivery_date ?? '',
+      lines: entity.lines.map((l) => ({
+        id: l.id,
+        product: l.product,
+        quantity: l.quantity,
+        unit_price: l.unit_price,
+        discount_percent: l.discount_percent,
+        tva_rate: l.tva_rate,
+      })),
+    }),
     linesFieldName: 'lines',
     defaultLine: emptyLine,
     computed: {
       breakdown: (lines, values) => computeVenteBreakdown(lines, values.discount_percent),
     },
-    onSubmit: async (values) => {
-      await submit(values as VenteForm)
+    onSuccess: async () => {
       navigate({ to: '/ventes' })
     },
   })
