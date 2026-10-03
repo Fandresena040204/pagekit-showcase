@@ -69,13 +69,13 @@ export type ProductForm = Omit<
   'id' | 'created_at' | 'updated_at' | 'category'
 > & { category: string }
 
-// No `_name` fields resolved server-side here (unlike Vente/VenteLigne,
-// which are backed by DB views) — BonCommandeSerializer/
-// BonCommandeLigneSerializer are a single plain serializer each, no
-// separate read view. Display code shows the raw `customer`/`product` id.
+// Read shape (list/retrieve, backed by bon_commande_list_view): the `_name`
+// and `_sku` labels are resolved server-side. Write shape: BonCommandeForm.
 export type BonCommandeLigne = {
   id: string
   product: string
+  product_name: string
+  product_sku: string
   quantity: string
   unit_price: string
   discount_percent: string
@@ -87,6 +87,7 @@ export type BonCommande = {
   created_at: string
   updated_at: string
   customer: string
+  customer_name: string
   currency: VenteCurrency
   discount_percent: string
   expected_delivery_date: string | null

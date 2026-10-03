@@ -26,9 +26,6 @@ export function VentesListPage() {
     columnFilters: [
       { columnId: 'id', searchKey: 'id', type: 'string' },
       { columnId: 'status', searchKey: 'status', type: 'array' },
-      // Column id is `customer_name` (what's displayed/sorted) but the
-      // backend param stays `customer` (still filters by id — the facet's
-      // selected VALUES are ids, only the column's own cell shows a name).
       { columnId: 'customer_name', searchKey: 'customer', type: 'array' },
       { columnId: 'total', type: 'range', minSearchKey: 'total_min', maxSearchKey: 'total_max' },
     ],
@@ -126,38 +123,38 @@ export function VentesListPage() {
                 {table.getRowModel().rows.length ? (
                   table.getRowModel().rows.map((row) => (
                     <Fragment key={row.id}>
-                    <TableRow>
-                      <TableCell>
-                        <Button
-                          variant='ghost'
-                          size='icon'
-                          aria-label={expanded.has(row.original.id) ? 'Masquer les lignes' : 'Voir les lignes'}
-                          onClick={() => toggleExpanded(row.original.id)}
-                        >
-                          {expanded.has(row.original.id) ? <Minus className='size-4' /> : <Plus className='size-4' />}
-                        </Button>
-                      </TableCell>
-                      {row.getVisibleCells().map((cell) => (
-                        <TableCell key={cell.id}>
-                          {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                        </TableCell>
-                      ))}
-                      <TableCell className='text-end'>
-                        <Button asChild variant='ghost' size='sm'>
-                          <Link to='/ventes/saisie/$id' params={{ id: row.original.id }}>
-                            Edit
-                          </Link>
-                        </Button>
-                      </TableCell>
-                    </TableRow>
-                    {expanded.has(row.original.id) && (
                       <TableRow>
-                        <TableCell />
-                        <TableCell colSpan={VENTES_COLUMNS.length + 1}>
-                          <LignesTab lines={row.original.lines} />
+                        <TableCell>
+                          <Button
+                            variant='ghost'
+                            size='icon'
+                            aria-label={expanded.has(row.original.id) ? 'Masquer les lignes' : 'Voir les lignes'}
+                            onClick={() => toggleExpanded(row.original.id)}
+                          >
+                            {expanded.has(row.original.id) ? <Minus className='size-4' /> : <Plus className='size-4' />}
+                          </Button>
+                        </TableCell>
+                        {row.getVisibleCells().map((cell) => (
+                          <TableCell key={cell.id}>
+                            {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                          </TableCell>
+                        ))}
+                        <TableCell className='text-end'>
+                          <Button asChild variant='ghost' size='sm'>
+                            <Link to='/ventes/saisie/$id' params={{ id: row.original.id }}>
+                              Edit
+                            </Link>
+                          </Button>
                         </TableCell>
                       </TableRow>
-                    )}
+                      {expanded.has(row.original.id) && (
+                        <TableRow>
+                          <TableCell />
+                          <TableCell colSpan={VENTES_COLUMNS.length + 1}>
+                            <LignesTab lines={row.original.lines} />
+                          </TableCell>
+                        </TableRow>
+                      )}
                     </Fragment>
                   ))
                 ) : (

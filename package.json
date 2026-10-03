@@ -40,7 +40,7 @@
     "sonner": "^2.0.7",
     "tailwind-merge": "^3.5.0",
     "tailwindcss": "^4.2.2",
-    "tanstack-pagekit": "link:../tanstack-pagekit",
+    "tanstack-pagekit": "npm:@fandresena040204/tanstack-pagekit@^0.2.0",
     "tw-animate-css": "^1.4.0",
     "zod": "^4.6.5",
     "zustand": "^5.0.15"

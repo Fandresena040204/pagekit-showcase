@@ -89,7 +89,7 @@ export function UsersListPage() {
     <Main className='flex flex-1 flex-col gap-4 sm:gap-6'>
       <div>
         <h2 className='text-2xl font-bold tracking-tight'>Users</h2>
-        <p className='text-muted-foreground'>Manage user roles. Read-only otherwise — the backend API doesn't expose user creation.</p>
+        <p className='text-muted-foreground'>Gérez les rôles et les permissions de chaque utilisateur. Les comptes ne se créent pas depuis cette page.</p>
       </div>
 
       {isLoading ? (

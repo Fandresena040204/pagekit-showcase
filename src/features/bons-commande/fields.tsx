@@ -14,11 +14,9 @@ export const ID_FIELD: FieldDescriptor<BonCommande> = {
   linkTo: (row) => ({ to: '/bons-commande/$id', params: { id: row.id } }),
 }
 
-// No `customer_name` resolved server-side (see features/types.ts) — the
-// link still works (target built from `row.customer`), the label is just
-// the raw id rather than a readable name.
+// `customer_name` is resolved server-side; the link still targets the id.
 export const CUSTOMER_FIELD: FieldDescriptor<BonCommande> = {
-  name: 'customer',
+  name: 'customer_name',
   label: 'Client',
   type: 'text',
   clickable: true,

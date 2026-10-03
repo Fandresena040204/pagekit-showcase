@@ -4,7 +4,8 @@ import { useMasterDetailForm, type PrefillOptions } from 'tanstack-pagekit'
 import { Button } from '@/components/ui/button'
 import { Main } from '@/components/layout/main'
 import { RenderFormField } from '@/components/fields/render-form-field'
-import { bonsCommandeApi } from '@/features/bons-commande/resource'
+import { transformationSource } from '@/lib/transformation-source'
+import { PrefillSource } from '@/lib/prefill-sources'
 import type { Vente, VenteForm, VenteLineForm } from '@/features/types'
 import { computeVenteBreakdown, type VenteBreakdown } from './totals'
 import { useCreateVente, useUpdateVente, useVente } from './resource'
@@ -32,31 +33,8 @@ const emptyValues: VenteForm = {
   lines: [emptyLine],
 }
 
-/**
- * "NOUVELLE FACTURE" — reproduces the mockup from the lib's conception docs
- * (Concetion_moteur/lib-page-builder/05-page-formulaire.md /
- * saisie-saisiemultiple.md) as closely as the shadcn/ui primitives allow:
- * header fields (Client/Date/Devise/Remise globale), a LIGNES table
- * (Produit/Qté/P.U./Remise/TVA + delete), then a right-aligned totals
- * footer (Total HT / Remise globale / TVA / TOTAL). The breakdown is wired
- * through `useMasterDetailForm`'s own `computed.breakdown` option (not a
- * bespoke `form.Subscribe` calling app code on the side) — `totals.ts` only
- * holds the formula itself (same one as the backend's
- * `Vente.recalculate_total`, so the live preview matches what the server
- * returns on save), the *reactive wiring* to the form is the library's.
- *
- * Shell (h2/p header + full-width `rounded-md border p-4` panels) matches
- * every other saisie/consulte page in the showcase — no `Card`, no
- * `mx-auto`/`max-w-*` centering: this page occupies all of `<Main>` the
- * same way the list pages already do.
- */
 const prefillSources: PrefillOptions<VenteForm>['sources'] = {
-  // A BonCommande has its own `to_vente_defaults` endpoint
-  // (apps/ventes/views/bon_commande_viewset.py) that returns a payload
-  // already shaped like VenteForm — wired here exactly as
-  // bons-commande-detail-page.tsx's "Vendre" button expects
-  // (`prefillSource: 'bon_commande'`).
-  bon_commande: (id) => bonsCommandeApi.customGet<Partial<VenteForm>>(`${id}/to_vente_defaults/`),
+  [PrefillSource.BON_COMMANDE]: transformationSource<VenteForm>('/api/bons-commande/', 'to_vente_defaults'),
 }
 
 export function VentesFormPage() {
@@ -67,10 +45,6 @@ export function VentesFormPage() {
   }
   const navigate = useNavigate()
 
-  // isEdit/isLoading/notFound/create-vs-update bookkeeping, and resolving
-  // defaultValues (edit row, or a prefill source, or emptyValues), all live
-  // in the library — this page only supplies field mapping (toFormValues),
-  // the available prefill sources, and what happens after save.
   const { form, addLine, removeLine, breakdown, isEdit, isLoading, notFound, isPending } = useMasterDetailForm<
     Vente,
     Omit<VenteForm, 'lines'>,
@@ -130,6 +104,11 @@ export function VentesFormPage() {
           {isEdit ? 'Mettez à jour la vente ci-dessous.' : 'Créez une nouvelle vente ici.'}
         </p>
       </div>
+      {!isEdit && prefillSource === PrefillSource.BON_COMMANDE && prefillId && (
+        <p className='rounded-md border border-primary/30 bg-primary/5 px-4 py-2 text-sm'>
+          Préremplie depuis le bon de commande <span className='font-medium'>{prefillId}</span>.
+        </p>
+      )}
 
       <form
         onSubmit={(e) => {

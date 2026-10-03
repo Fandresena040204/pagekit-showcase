@@ -1,4 +1,5 @@
 import { useMemo } from 'react'
+import { PrefillSource } from '@/lib/prefill-sources'
 import { Link, useParams } from '@tanstack/react-router'
 import { flexRender, type ColumnDef } from '@tanstack/react-table'
 import { Loader2 } from 'lucide-react'
@@ -17,7 +18,7 @@ export function BonCommandeDetailPage() {
 
   const columns: ColumnDef<BonCommandeLigne>[] = useMemo(
     () => [
-      renderColumn({ name: 'product', label: 'Product', type: 'text' }),
+      renderColumn({ name: 'product_name', label: 'Product', type: 'text' }),
       renderColumn({ name: 'quantity', label: 'Quantity', type: 'number' }),
       renderColumn({ name: 'unit_price', label: 'Unit price', type: 'number' }),
       renderColumn({ name: 'discount_percent', label: 'Discount %', type: 'number' }),
@@ -58,11 +59,11 @@ export function BonCommandeDetailPage() {
           {/* The only consumer of the prefill capability in this showcase —
               passes just the id in the URL (`prefillId`), never the
               bon de commande's own data. VentesFormPage resolves
-              `prefillSource: 'bon_commande'` against its own `prefill.sources`
+              `prefillSource: PrefillSource.BON_COMMANDE` against its own `prefill.sources`
               map and fetches the real payload itself via
               `bonsCommandeApi.customGet(...)`. */}
           <Button asChild variant='outline'>
-            <Link to='/ventes/saisie' search={{ prefillSource: 'bon_commande', prefillId: bonCommande.id }}>
+            <Link to='/ventes/saisie' search={{ prefillSource: PrefillSource.BON_COMMANDE, prefillId: bonCommande.id }}>
               Vendre
             </Link>
           </Button>
