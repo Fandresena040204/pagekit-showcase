@@ -200,12 +200,6 @@ export function VentesFormPage() {
           </Button>
         </div>
 
-        {/* --- Totals: `breakdown()` reads current form values on every
-            call, so it needs a reactive trigger — `form.Subscribe`
-            provides that (re-renders this block on lines/discount/
-            currency changes), but the number themselves come from
-            `useMasterDetailForm`'s `computed.breakdown`, not from
-            calling `computeVenteBreakdown` directly. --- */}
         <form.Subscribe
           selector={(state) => ({
             lines: state.values.lines,

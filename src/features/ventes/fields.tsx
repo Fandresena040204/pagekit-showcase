@@ -7,7 +7,6 @@ import { withSortableHeader } from '@/components/fields/with-sortable-header'
 import { customersApi } from '@/features/customers/resource'
 import { productsApi } from '@/features/products/resource'
 import type { Product, Vente, VenteForm, VenteStatus } from '@/features/types'
-import { VentesPreviewLivraisons } from './ventes-preview-livraisons'
 
 const arrayFilter = (row: { getValue: (id: string) => unknown }, id: string, value: string[]) =>
   value.includes(row.getValue(id) as string)
@@ -157,11 +156,4 @@ export const VENTES_COLUMNS: ColumnDef<Vente>[] = [
   renderColumn(CUSTOMER_FIELD, { renderLink, columnDef: withSortableHeader(CUSTOMER_FIELD) }),
   renderColumn(STATUS_FIELD, { columnDef: { filterFn: arrayFilter, enableSorting: false } }),
   renderColumn(TOTAL_FIELD, { columnDef: withSortableHeader(TOTAL_FIELD) }),
-  // Action column, not a data field — not built via `renderColumn`/
-  // `FieldDescriptor` (those describe an entity field, not a UI action).
-  {
-    id: 'preview',
-    header: '',
-    cell: ({ row }) => <VentesPreviewLivraisons venteId={row.original.id} />,
-  },
 ]

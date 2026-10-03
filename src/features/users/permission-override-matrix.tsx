@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react'
-import { Check, ChevronDown, Loader2, Minus, X } from 'lucide-react'
+import { ChevronDown, Loader2 } from 'lucide-react'
+import { Checkbox } from '@/components/ui/checkbox'
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible'
 import { Input } from '@/components/ui/input'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
@@ -25,16 +26,20 @@ const NEXT: Record<OverrideState, OverrideState> = {
   denied: 'inherited',
 }
 
-const STATE_ICON: Record<OverrideState, typeof Check> = {
-  inherited: Minus,
-  allowed: Check,
-  denied: X,
+// Same visual language as the roles matrix (a checkbox per cell), with three
+// distinct looks: Hérité = empty dashed box (no explicit decision), Autorisé =
+// green checked box, Refusé = empty box with a red border. The indeterminate
+// checkbox state is not used: shadcn renders it with the same check icon.
+const STATE_CHECKED: Record<OverrideState, boolean> = {
+  inherited: false,
+  allowed: true,
+  denied: false,
 }
 
 const STATE_STYLE: Record<OverrideState, string> = {
-  inherited: 'text-muted-foreground border-muted-foreground/30',
-  allowed: 'text-emerald-600 border-emerald-600/40 bg-emerald-600/10',
-  denied: 'text-destructive border-destructive/40 bg-destructive/10',
+  inherited: 'border-dashed border-muted-foreground/50',
+  allowed: 'data-[state=checked]:bg-emerald-600 data-[state=checked]:border-emerald-600',
+  denied: 'border-destructive',
 }
 
 type PermissionOverrideMatrixProps = {
@@ -70,6 +75,10 @@ export function PermissionOverrideMatrix({ value, onChange }: PermissionOverride
 
   return (
     <div className='space-y-3'>
+      <p className='text-muted-foreground text-xs'>
+        Case vide en pointillés : hérité du rôle (aucune exception). Case verte cochée : autorisé pour cet
+        utilisateur. Case vide à bordure rouge : refusé pour cet utilisateur. Un clic passe à l'état suivant.
+      </p>
       <Input
         placeholder='Filter by entity...'
         value={search}
@@ -104,20 +113,14 @@ export function PermissionOverrideMatrix({ value, onChange }: PermissionOverride
                         return <TableCell key={action} />
                       }
                       const state = stateOf(value, codename)
-                      const Icon = STATE_ICON[state]
                       return (
                         <TableCell key={action} className='text-center'>
-                          <button
-                            type='button'
-                            aria-label={`${codename}: ${state}, click to cycle`}
-                            onClick={() => cycle(codename)}
-                            className={cn(
-                              'inline-flex size-7 items-center justify-center rounded-full border transition-colors disabled:opacity-50',
-                              STATE_STYLE[state]
-                            )}
-                          >
-                            <Icon className='size-3.5' />
-                          </button>
+                          <Checkbox
+                            aria-label={`${codename}: ${state}`}
+                            checked={STATE_CHECKED[state]}
+                            onCheckedChange={() => cycle(codename)}
+                            className={cn('mx-auto', STATE_STYLE[state])}
+                          />
                         </TableCell>
                       )
                     })}
