@@ -6,7 +6,7 @@ import type { User } from '@/features/types'
 
 // Django's UserViewSet is a ReadOnlyModelViewSet (see
 // apps/accounts/views/user_viewset.py) — no create/update/delete, only
-// list/retrieve plus the two custom actions below. `createCrudResource`'s
+// list/retrieve plus the save actions below. `createCrudResource`'s
 // useCreate/useUpdate/useDelete are simply never destructured for this
 // resource.
 export const {
@@ -15,26 +15,17 @@ export const {
   useOne: useUser,
 } = createCrudResource<User, never>('users', '/api/users/', 'User')
 
-export const useAssignRole = createActionHook<{ id: string; role: string }>(
+export const useSetUserRoles = createActionHook<{ id: string; roles: string[] }>(
   ['users'],
-  ({ id, role }) => httpClient.post(`/api/users/${id}/assign_role/`, { role }),
-  () => toast.success('Role assigned.')
+  ({ id, roles }) => httpClient.post(`/api/users/${id}/set_roles/`, { roles }),
+  () => toast.success('Roles saved.')
 )
 
-export const useRemoveRole = createActionHook<{ id: string; role: string }>(
+export const useSetPermissionOverrides = createActionHook<{
+  id: string
+  overrides: { permission: string; is_allowed: boolean }[]
+}>(
   ['users'],
-  ({ id, role }) => httpClient.post(`/api/users/${id}/remove_role/`, { role }),
-  () => toast.success('Role removed.')
-)
-
-export const useSetPermissionOverride = createActionHook<{ id: string; permission: string; is_allowed: boolean }>(
-  ['users'],
-  ({ id, ...body }) => httpClient.post(`/api/users/${id}/set_permission_override/`, body),
-  () => toast.success('Override updated.')
-)
-
-export const useClearPermissionOverride = createActionHook<{ id: string; permission: string }>(
-  ['users'],
-  ({ id, ...body }) => httpClient.post(`/api/users/${id}/clear_permission_override/`, body),
-  () => toast.success('Override cleared.')
+  ({ id, overrides }) => httpClient.post(`/api/users/${id}/set_permission_overrides/`, { overrides }),
+  () => toast.success('Permissions saved.')
 )

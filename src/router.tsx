@@ -22,6 +22,8 @@ import { RolesDetailPage } from '@/features/roles/roles-detail-page'
 import { RolesFormPage } from '@/features/roles/roles-form-page'
 import { RolesListPage } from '@/features/roles/roles-list-page'
 import { UsersDetailPage } from '@/features/users/users-detail-page'
+import { UsersPermissionsPage } from '@/features/users/users-permissions-page'
+import { UsersRolesPage } from '@/features/users/users-roles-page'
 import { UsersListPage } from '@/features/users/users-list-page'
 import { VentesDetailPage } from '@/features/ventes/ventes-detail-page'
 import { VentesFormPage } from '@/features/ventes/ventes-form-page'
@@ -240,6 +242,18 @@ const usersDetailRoute = createRoute({
   component: UsersDetailPage,
 })
 
+const usersRolesRoute = createRoute({
+  getParentRoute: () => authenticatedRoute,
+  path: '/users/$id/roles',
+  component: UsersRolesPage,
+})
+
+const usersPermissionsRoute = createRoute({
+  getParentRoute: () => authenticatedRoute,
+  path: '/users/$id/permissions',
+  component: UsersPermissionsPage,
+})
+
 const routeTree = rootRoute.addChildren([
   signInRoute,
   authenticatedRoute.addChildren([
@@ -270,6 +284,8 @@ const routeTree = rootRoute.addChildren([
     rolesDetailRoute,
     usersListRoute,
     usersDetailRoute,
+    usersRolesRoute,
+    usersPermissionsRoute,
   ]),
 ])
 

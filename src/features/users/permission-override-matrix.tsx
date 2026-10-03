@@ -17,7 +17,7 @@ function stateOf(overrides: PermissionOverride[], codename: string): OverrideSta
 
 // Hérité -> Autorisé -> Refusé -> Hérité, jamais un simple binaire : l'état
 // par défaut d'une permission n'est ni "autorisé" ni "refusé", c'est "hérité
-// du rôle, pas d'exception" (voir la doc de clear_permission_override côté
+// du rôle, pas d'exception" (voir la doc de set_permission_overrides côté
 // backend) — un Checkbox à 2 états ne peut pas représenter ça.
 const NEXT: Record<OverrideState, OverrideState> = {
   inherited: 'allowed',
@@ -39,13 +39,11 @@ const STATE_STYLE: Record<OverrideState, string> = {
 
 type PermissionOverrideMatrixProps = {
   value: PermissionOverride[]
-  onSetOverride: (codename: string, isAllowed: boolean) => void
-  onClearOverride: (codename: string) => void
-  pending: string | null
+  onChange: (next: PermissionOverride[]) => void
 }
 
-/** Same data source and layout as roles/permission-matrix.tsx (shared usePermissionsList, grouped by app, searchable) — only the cell is a 3-state cycle instead of a checkbox. */
-export function PermissionOverrideMatrix({ value, onSetOverride, onClearOverride, pending }: PermissionOverrideMatrixProps) {
+/** Controlled, like roles/permission-matrix.tsx: the page owns the draft list and saves it in one request. Only the cell is a 3-state cycle instead of a checkbox. */
+export function PermissionOverrideMatrix({ value, onChange }: PermissionOverrideMatrixProps) {
   const { data: allGroups, isLoading, isError } = usePermissionsList()
   const [search, setSearch] = useState('')
 
@@ -53,8 +51,9 @@ export function PermissionOverrideMatrix({ value, onSetOverride, onClearOverride
 
   function cycle(codename: string) {
     const next = NEXT[stateOf(value, codename)]
-    if (next === 'inherited') onClearOverride(codename)
-    else onSetOverride(codename, next === 'allowed')
+    const rest = value.filter((o) => o.permission !== codename)
+    if (next === 'inherited') onChange(rest)
+    else onChange([...rest, { permission: codename, is_allowed: next === 'allowed' }])
   }
 
   if (isLoading) {
@@ -111,14 +110,13 @@ export function PermissionOverrideMatrix({ value, onSetOverride, onClearOverride
                           <button
                             type='button'
                             aria-label={`${codename}: ${state}, click to cycle`}
-                            disabled={pending === codename}
                             onClick={() => cycle(codename)}
                             className={cn(
                               'inline-flex size-7 items-center justify-center rounded-full border transition-colors disabled:opacity-50',
                               STATE_STYLE[state]
                             )}
                           >
-                            {pending === codename ? <Loader2 className='size-3.5 animate-spin' /> : <Icon className='size-3.5' />}
+                            <Icon className='size-3.5' />
                           </button>
                         </TableCell>
                       )

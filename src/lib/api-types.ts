@@ -36,6 +36,54 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/bons-commande/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["bons_commande_list"];
+        put?: never;
+        post: operations["bons_commande_create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/bons-commande/{id}/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["bons_commande_retrieve"];
+        put: operations["bons_commande_update"];
+        post?: never;
+        delete: operations["bons_commande_destroy"];
+        options?: never;
+        head?: never;
+        patch: operations["bons_commande_partial_update"];
+        trace?: never;
+    };
+    "/api/bons-commande/{id}/to_vente_defaults/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["bons_commande_to_vente_defaults_retrieve"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/customers/": {
         parameters: {
             query?: never;
@@ -66,6 +114,38 @@ export interface paths {
         options?: never;
         head?: never;
         patch: operations["customers_partial_update"];
+        trace?: never;
+    };
+    "/api/fournisseurs/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["fournisseurs_list"];
+        put?: never;
+        post: operations["fournisseurs_create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/fournisseurs/{id}/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["fournisseurs_retrieve"];
+        put: operations["fournisseurs_update"];
+        post?: never;
+        delete: operations["fournisseurs_destroy"];
+        options?: never;
+        head?: never;
+        patch: operations["fournisseurs_partial_update"];
         trace?: never;
     };
     "/api/livraisons/": {
@@ -130,6 +210,22 @@ export interface paths {
         options?: never;
         head?: never;
         patch: operations["paiements_partial_update"];
+        trace?: never;
+    };
+    "/api/permissions/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["permissions_list"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
         trace?: never;
     };
     "/api/product-categories/": {
@@ -332,6 +428,38 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/users/{id}/set_permission_overrides/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["users_set_permission_overrides_create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/users/{id}/set_roles/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["users_set_roles_create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/ventes/": {
         parameters: {
             query?: never;
@@ -400,6 +528,32 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        BonCommande: {
+            readonly id: string;
+            customer: string;
+            currency?: components["schemas"]["CurrencyEnum"];
+            /** Format: decimal */
+            discount_percent?: string;
+            /** Format: date */
+            expected_delivery_date?: string | null;
+            lines: components["schemas"]["BonCommandeLigne"][];
+            /** Format: date-time */
+            readonly created_at: string;
+            /** Format: date-time */
+            readonly updated_at: string;
+        };
+        BonCommandeLigne: {
+            id?: string;
+            product: string;
+            /** Format: decimal */
+            quantity: string;
+            /** Format: decimal */
+            unit_price: string;
+            /** Format: decimal */
+            discount_percent?: string;
+            /** Format: decimal */
+            tva_rate?: string;
+        };
         /**
          * @description * `MGA` - Ariary malgache
          *     * `EUR` - Euro
@@ -416,6 +570,16 @@ export interface components {
             city?: string;
             /** Format: date */
             birth_date?: string | null;
+            is_active?: boolean;
+            /** Format: date-time */
+            readonly created_at: string;
+            /** Format: date-time */
+            readonly updated_at: string;
+        };
+        Fournisseur: {
+            readonly id: string;
+            name: string;
+            email?: string;
             is_active?: boolean;
             /** Format: date-time */
             readonly created_at: string;
@@ -449,6 +613,21 @@ export interface components {
          * @enum {string}
          */
         MethodEnum: "cash" | "card" | "transfer";
+        PaginatedBonCommandeList: {
+            /** @example 123 */
+            count: number;
+            /**
+             * Format: uri
+             * @example http://api.example.org/accounts/?page=4
+             */
+            next?: string | null;
+            /**
+             * Format: uri
+             * @example http://api.example.org/accounts/?page=2
+             */
+            previous?: string | null;
+            results: components["schemas"]["BonCommande"][];
+        };
         PaginatedCustomerList: {
             /** @example 123 */
             count: number;
@@ -463,6 +642,21 @@ export interface components {
              */
             previous?: string | null;
             results: components["schemas"]["Customer"][];
+        };
+        PaginatedFournisseurList: {
+            /** @example 123 */
+            count: number;
+            /**
+             * Format: uri
+             * @example http://api.example.org/accounts/?page=4
+             */
+            next?: string | null;
+            /**
+             * Format: uri
+             * @example http://api.example.org/accounts/?page=2
+             */
+            previous?: string | null;
+            results: components["schemas"]["Fournisseur"][];
         };
         PaginatedLivraisonList: {
             /** @example 123 */
@@ -583,6 +777,20 @@ export interface components {
             /** Format: date-time */
             readonly updated_at: string;
         };
+        PatchedBonCommande: {
+            readonly id?: string;
+            customer?: string;
+            currency?: components["schemas"]["CurrencyEnum"];
+            /** Format: decimal */
+            discount_percent?: string;
+            /** Format: date */
+            expected_delivery_date?: string | null;
+            lines?: components["schemas"]["BonCommandeLigne"][];
+            /** Format: date-time */
+            readonly created_at?: string;
+            /** Format: date-time */
+            readonly updated_at?: string;
+        };
         PatchedCustomer: {
             readonly id?: string;
             name?: string;
@@ -592,6 +800,16 @@ export interface components {
             city?: string;
             /** Format: date */
             birth_date?: string | null;
+            is_active?: boolean;
+            /** Format: date-time */
+            readonly created_at?: string;
+            /** Format: date-time */
+            readonly updated_at?: string;
+        };
+        PatchedFournisseur: {
+            readonly id?: string;
+            name?: string;
+            email?: string;
             is_active?: boolean;
             /** Format: date-time */
             readonly created_at?: string;
@@ -665,6 +883,9 @@ export interface components {
             last_name?: string;
             readonly roles?: string[];
             readonly permissions?: string[];
+            readonly permission_overrides?: {
+                [key: string]: unknown;
+            }[];
         };
         /**
          * @description Write-only path (`create`/`update`) — `VenteViewSet.list`/`retrieve`
@@ -695,6 +916,11 @@ export interface components {
             readonly created_at?: string;
             /** Format: date-time */
             readonly updated_at?: string;
+        };
+        PermissionGroup: {
+            app_label: string;
+            model: string;
+            codenames: string[];
         };
         /**
          * @description * `low` - Basse
@@ -780,6 +1006,9 @@ export interface components {
             last_name?: string;
             readonly roles: string[];
             readonly permissions: string[];
+            readonly permission_overrides: {
+                [key: string]: unknown;
+            }[];
         };
         UserList: {
             readonly id: string;
@@ -787,7 +1016,6 @@ export interface components {
             /** Format: email */
             readonly email: string;
             readonly is_active: boolean;
-            readonly is_staff: boolean;
             readonly roles: string[];
         };
         /**
@@ -998,6 +1226,180 @@ export interface operations {
             };
         };
     };
+    bons_commande_list: {
+        parameters: {
+            query?: {
+                /** @description Quel champ utiliser pour classer les résultats. */
+                ordering?: string;
+                /** @description Un numéro de page de l'ensemble des résultats. */
+                page?: number;
+                /** @description Nombre de résultats à retourner par page. */
+                page_size?: number;
+                /** @description Un terme de recherche. */
+                search?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PaginatedBonCommandeList"];
+                };
+            };
+        };
+    };
+    bons_commande_create: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["BonCommande"];
+                "application/x-www-form-urlencoded": components["schemas"]["BonCommande"];
+                "multipart/form-data": components["schemas"]["BonCommande"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BonCommande"];
+                };
+            };
+        };
+    };
+    bons_commande_retrieve: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Un(une) valeur unique identifiant ce(cette) bon commande. */
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BonCommande"];
+                };
+            };
+        };
+    };
+    bons_commande_update: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Un(une) valeur unique identifiant ce(cette) bon commande. */
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["BonCommande"];
+                "application/x-www-form-urlencoded": components["schemas"]["BonCommande"];
+                "multipart/form-data": components["schemas"]["BonCommande"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BonCommande"];
+                };
+            };
+        };
+    };
+    bons_commande_destroy: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Un(une) valeur unique identifiant ce(cette) bon commande. */
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No response body */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    bons_commande_partial_update: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Un(une) valeur unique identifiant ce(cette) bon commande. */
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["PatchedBonCommande"];
+                "application/x-www-form-urlencoded": components["schemas"]["PatchedBonCommande"];
+                "multipart/form-data": components["schemas"]["PatchedBonCommande"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BonCommande"];
+                };
+            };
+        };
+    };
+    bons_commande_to_vente_defaults_retrieve: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Un(une) valeur unique identifiant ce(cette) bon commande. */
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BonCommande"];
+                };
+            };
+        };
+    };
     customers_list: {
         parameters: {
             query?: {
@@ -1151,6 +1553,158 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["Customer"];
+                };
+            };
+        };
+    };
+    fournisseurs_list: {
+        parameters: {
+            query?: {
+                /** @description Quel champ utiliser pour classer les résultats. */
+                ordering?: string;
+                /** @description Un numéro de page de l'ensemble des résultats. */
+                page?: number;
+                /** @description Nombre de résultats à retourner par page. */
+                page_size?: number;
+                /** @description Un terme de recherche. */
+                search?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PaginatedFournisseurList"];
+                };
+            };
+        };
+    };
+    fournisseurs_create: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["Fournisseur"];
+                "application/x-www-form-urlencoded": components["schemas"]["Fournisseur"];
+                "multipart/form-data": components["schemas"]["Fournisseur"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Fournisseur"];
+                };
+            };
+        };
+    };
+    fournisseurs_retrieve: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Un(une) valeur unique identifiant ce(cette) fournisseur. */
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Fournisseur"];
+                };
+            };
+        };
+    };
+    fournisseurs_update: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Un(une) valeur unique identifiant ce(cette) fournisseur. */
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["Fournisseur"];
+                "application/x-www-form-urlencoded": components["schemas"]["Fournisseur"];
+                "multipart/form-data": components["schemas"]["Fournisseur"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Fournisseur"];
+                };
+            };
+        };
+    };
+    fournisseurs_destroy: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Un(une) valeur unique identifiant ce(cette) fournisseur. */
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No response body */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    fournisseurs_partial_update: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Un(une) valeur unique identifiant ce(cette) fournisseur. */
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["PatchedFournisseur"];
+                "application/x-www-form-urlencoded": components["schemas"]["PatchedFournisseur"];
+                "multipart/form-data": components["schemas"]["PatchedFournisseur"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Fournisseur"];
                 };
             };
         };
@@ -1461,6 +2015,25 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["Paiement"];
+                };
+            };
+        };
+    };
+    permissions_list: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PermissionGroup"][];
                 };
             };
         };
@@ -2027,7 +2600,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["UserList"];
+                    "application/json": components["schemas"]["User"];
                 };
             };
         };
@@ -2061,6 +2634,62 @@ export interface operations {
         };
     };
     users_remove_role_create: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Un(une) valeur unique identifiant ce(cette) user. */
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["UserList"];
+                "application/x-www-form-urlencoded": components["schemas"]["UserList"];
+                "multipart/form-data": components["schemas"]["UserList"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UserList"];
+                };
+            };
+        };
+    };
+    users_set_permission_overrides_create: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Un(une) valeur unique identifiant ce(cette) user. */
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["UserList"];
+                "application/x-www-form-urlencoded": components["schemas"]["UserList"];
+                "multipart/form-data": components["schemas"]["UserList"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UserList"];
+                };
+            };
+        };
+    };
+    users_set_roles_create: {
         parameters: {
             query?: never;
             header?: never;

@@ -1,5 +1,6 @@
-import { useMemo, useState } from 'react'
+import { useMemo } from 'react'
 import { flexRender, type ColumnDef, type HeaderContext } from '@tanstack/react-table'
+import { Link } from '@tanstack/react-router'
 import { Loader2 } from 'lucide-react'
 import { renderColumn, useListPage, useTanStackRouterAdapter, type FieldDescriptor } from 'tanstack-pagekit'
 import { Badge } from '@/components/ui/badge'
@@ -12,8 +13,6 @@ import { renderLink } from '@/components/fields/render-link'
 import type { User } from '@/features/types'
 import { useRoles } from '@/features/roles/resource'
 import { useUsersPage } from './resource'
-import { UsersPermissionOverridesDialog } from './users-permission-overrides-dialog'
-import { UsersRolesDialog } from './users-roles-dialog'
 
 const USERNAME_FIELD: FieldDescriptor<User> = {
   name: 'username',
@@ -34,14 +33,12 @@ function withSortableHeader<TRow>(descriptor: FieldDescriptor<TRow>): Pick<Colum
 
 /**
  * Django's UserViewSet is read-only (see resource.ts) — no "Add User" here,
- * matching what the real API actually supports, unlike Products/Customers/
- * Roles above. Roles are managed via a dialog calling the `assign_role`/
- * `remove_role` custom actions instead of a form submit.
+ * matching what the real API actually supports. Roles and permission
+ * overrides are edited on their own pages (users/$id/roles,
+ * users/$id/permissions), with the same Enregistrer/Annuler flow as Roles.
  */
 export function UsersListPage() {
   const router = useTanStackRouterAdapter()
-  const [rolesDialogUser, setRolesDialogUser] = useState<User | null>(null)
-  const [overridesDialogUser, setOverridesDialogUser] = useState<User | null>(null)
 
   const { data: roles } = useRoles()
   const roleOptions = useMemo(() => (roles ?? []).map((r) => ({ label: r.name, value: r.name })), [roles])
@@ -130,11 +127,15 @@ export function UsersListPage() {
                         <TableCell key={cell.id}>{flexRender(cell.column.columnDef.cell, cell.getContext())}</TableCell>
                       ))}
                       <TableCell className='text-end'>
-                        <Button variant='ghost' size='sm' onClick={() => setRolesDialogUser(row.original)}>
-                          Manage roles
+                        <Button asChild variant='ghost' size='sm'>
+                          <Link to='/users/$id/roles' params={{ id: row.original.id }}>
+                            Manage roles
+                          </Link>
                         </Button>
-                        <Button variant='ghost' size='sm' onClick={() => setOverridesDialogUser(row.original)}>
-                          Manage permissions
+                        <Button asChild variant='ghost' size='sm'>
+                          <Link to='/users/$id/permissions' params={{ id: row.original.id }}>
+                            Manage permissions
+                          </Link>
                         </Button>
                       </TableCell>
                     </TableRow>
@@ -153,11 +154,6 @@ export function UsersListPage() {
         </div>
       )}
 
-      <UsersRolesDialog user={rolesDialogUser} onOpenChange={(open) => !open && setRolesDialogUser(null)} />
-      <UsersPermissionOverridesDialog
-        user={overridesDialogUser}
-        onOpenChange={(open) => !open && setOverridesDialogUser(null)}
-      />
     </Main>
   )
 }
