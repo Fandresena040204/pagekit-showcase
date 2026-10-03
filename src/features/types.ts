@@ -203,11 +203,26 @@ export type Role = Required<components['schemas']['Role']>
 
 export type RoleForm = Omit<Role, 'id'>
 
+// One row per (app_label, model) — = apps/core/views.py's
+// PermissionsMetaView response, backed by the accounts.Permission rows the
+// create_custom_permissions signal generates for every managed model.
+export type PermissionGroup = { app_label: string; model: string; codenames: string[] }
+
+// Hérité (no entry for this codename) / Autorisé (is_allowed: true) /
+// Refusé (is_allowed: false) — see UserSerializer.get_permission_overrides.
+export type PermissionOverride = { permission: string; is_allowed: boolean }
+
 export type User = {
   id: string
   username: string
   email: string
   is_active: boolean
-  is_staff: boolean
   roles: string[]
+  // Only present on the `retrieve` response (UserSerializer) — the `list`
+  // response (UserListSerializer, see users/resource.ts's useUsersPage)
+  // omits both to keep the table query light. Fetch a single user
+  // (useUser) when either is actually needed, e.g. the overrides dialog.
+  /** Effective codenames (roles + overrides applied) — see UserSerializer.get_permissions. */
+  permissions?: string[]
+  permission_overrides?: PermissionOverride[]
 }

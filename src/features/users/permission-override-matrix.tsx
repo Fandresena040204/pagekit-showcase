@@ -1,32 +1,60 @@
 import { useMemo, useState } from 'react'
-import { ChevronDown, Loader2 } from 'lucide-react'
-import { Checkbox } from '@/components/ui/checkbox'
+import { Check, ChevronDown, Loader2, Minus, X } from 'lucide-react'
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible'
 import { Input } from '@/components/ui/input'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
+import { cn } from '@/lib/utils'
 import { ACTIONS, filterPermissionGroups, groupByApp, usePermissionsList } from '@/features/permissions/resource'
+import type { PermissionOverride } from '@/features/types'
 
-type PermissionMatrixProps = {
-  value: string[]
-  onChange: (next: string[]) => void
+type OverrideState = 'inherited' | 'allowed' | 'denied'
+
+function stateOf(overrides: PermissionOverride[], codename: string): OverrideState {
+  const override = overrides.find((o) => o.permission === codename)
+  if (!override) return 'inherited'
+  return override.is_allowed ? 'allowed' : 'denied'
 }
 
-/**
- * Rows come from /api/permissions/ (usePermissionsList) instead of a
- * hardcoded model list — a new entity appears here automatically as soon as
- * its migration has run (the backend's create_custom_permissions signal
- * seeds its 4 permissions), nothing to edit in this file. Grouped by
- * app_label (collapsible sections) and filtered by a search box, since a
- * flat table stops being usable once the entity count grows.
- */
-export function PermissionMatrix({ value, onChange }: PermissionMatrixProps) {
+// Hérité -> Autorisé -> Refusé -> Hérité, jamais un simple binaire : l'état
+// par défaut d'une permission n'est ni "autorisé" ni "refusé", c'est "hérité
+// du rôle, pas d'exception" (voir la doc de clear_permission_override côté
+// backend) — un Checkbox à 2 états ne peut pas représenter ça.
+const NEXT: Record<OverrideState, OverrideState> = {
+  inherited: 'allowed',
+  allowed: 'denied',
+  denied: 'inherited',
+}
+
+const STATE_ICON: Record<OverrideState, typeof Check> = {
+  inherited: Minus,
+  allowed: Check,
+  denied: X,
+}
+
+const STATE_STYLE: Record<OverrideState, string> = {
+  inherited: 'text-muted-foreground border-muted-foreground/30',
+  allowed: 'text-emerald-600 border-emerald-600/40 bg-emerald-600/10',
+  denied: 'text-destructive border-destructive/40 bg-destructive/10',
+}
+
+type PermissionOverrideMatrixProps = {
+  value: PermissionOverride[]
+  onSetOverride: (codename: string, isAllowed: boolean) => void
+  onClearOverride: (codename: string) => void
+  pending: string | null
+}
+
+/** Same data source and layout as roles/permission-matrix.tsx (shared usePermissionsList, grouped by app, searchable) — only the cell is a 3-state cycle instead of a checkbox. */
+export function PermissionOverrideMatrix({ value, onSetOverride, onClearOverride, pending }: PermissionOverrideMatrixProps) {
   const { data: allGroups, isLoading, isError } = usePermissionsList()
   const [search, setSearch] = useState('')
 
   const byApp = useMemo(() => groupByApp(filterPermissionGroups(allGroups ?? [], search)), [allGroups, search])
 
-  function toggle(codename: string, checked: boolean) {
-    onChange(checked ? [...value, codename] : value.filter((c) => c !== codename))
+  function cycle(codename: string) {
+    const next = NEXT[stateOf(value, codename)]
+    if (next === 'inherited') onClearOverride(codename)
+    else onSetOverride(codename, next === 'allowed')
   }
 
   if (isLoading) {
@@ -76,12 +104,22 @@ export function PermissionMatrix({ value, onChange }: PermissionMatrixProps) {
                       if (!group.codenames.includes(codename)) {
                         return <TableCell key={action} />
                       }
+                      const state = stateOf(value, codename)
+                      const Icon = STATE_ICON[state]
                       return (
                         <TableCell key={action} className='text-center'>
-                          <Checkbox
-                            checked={value.includes(codename)}
-                            onCheckedChange={(checked) => toggle(codename, checked === true)}
-                          />
+                          <button
+                            type='button'
+                            aria-label={`${codename}: ${state}, click to cycle`}
+                            disabled={pending === codename}
+                            onClick={() => cycle(codename)}
+                            className={cn(
+                              'inline-flex size-7 items-center justify-center rounded-full border transition-colors disabled:opacity-50',
+                              STATE_STYLE[state]
+                            )}
+                          >
+                            {pending === codename ? <Loader2 className='size-3.5 animate-spin' /> : <Icon className='size-3.5' />}
+                          </button>
                         </TableCell>
                       )
                     })}
