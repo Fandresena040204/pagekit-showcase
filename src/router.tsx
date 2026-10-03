@@ -202,25 +202,6 @@ const productsEditRoute = createRoute({
   component: ProductsFormPage,
 })
 
-const fournisseursListRoute = createRoute({
-  getParentRoute: () => authenticatedRoute,
-  path: '/fournisseurs',
-  component: FournisseursListPage,
-  validateSearch: (search: Record<string, unknown>) => search,
-})
-
-const fournisseursNewRoute = createRoute({
-  getParentRoute: () => authenticatedRoute,
-  path: '/fournisseurs/saisie',
-  component: FournisseursFormPage,
-})
-
-const fournisseursEditRoute = createRoute({
-  getParentRoute: () => authenticatedRoute,
-  path: '/fournisseurs/saisie/$id',
-  component: FournisseursFormPage,
-})
-
 const rolesListRoute = createRoute({
   getParentRoute: () => authenticatedRoute,
   path: '/roles',
@@ -283,9 +264,6 @@ const routeTree = rootRoute.addChildren([
     productsNewRoute,
     productsEditRoute,
     productsDetailRoute,
-    fournisseursListRoute,
-    fournisseursNewRoute,
-    fournisseursEditRoute,
     rolesListRoute,
     rolesNewRoute,
     rolesEditRoute,
