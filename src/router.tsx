@@ -1,6 +1,7 @@
 import { Outlet, createRootRoute, createRoute, createRouter, redirect } from '@tanstack/react-router'
 import { z } from 'zod'
 import { Toaster } from '@/components/ui/sonner'
+import { ApiErrorState } from '@/components/errors/api-error-state'
 import { AuthenticatedLayout } from '@/components/layout/authenticated-layout'
 import { useAuthStore } from '@/stores/auth-store'
 import { fetchMe } from '@/features/auth/api'
@@ -289,7 +290,11 @@ const routeTree = rootRoute.addChildren([
   ]),
 ])
 
-export const router = createRouter({ routeTree })
+export const router = createRouter({
+  routeTree,
+  defaultErrorComponent: ({ error }) => <ApiErrorState error={error} />,
+  defaultNotFoundComponent: () => <ApiErrorState status={404} />,
+})
 
 declare module '@tanstack/react-router' {
   interface Register {

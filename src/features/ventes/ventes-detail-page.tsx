@@ -1,3 +1,4 @@
+import { ApiErrorState } from '@/components/errors/api-error-state'
 import { Link, useParams } from '@tanstack/react-router'
 import { Loader2 } from 'lucide-react'
 import { renderDetailField, useDetailPage, useTanStackRouterAdapter } from 'tanstack-pagekit'
@@ -40,7 +41,7 @@ export function VentesDetailPage() {
   if (isError || !entity) {
     return (
       <Main>
-        <p className='text-destructive'>Vente not found.</p>
+        <ApiErrorState />
       </Main>
     )
   }

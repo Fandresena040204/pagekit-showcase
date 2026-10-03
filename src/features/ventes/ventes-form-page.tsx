@@ -1,3 +1,4 @@
+import { ApiErrorState } from '@/components/errors/api-error-state'
 import { useNavigate, useParams, useSearch } from '@tanstack/react-router'
 import { Loader2, Plus, Trash2 } from 'lucide-react'
 import { useMasterDetailForm, type PrefillOptions } from 'tanstack-pagekit'
@@ -91,7 +92,7 @@ export function VentesFormPage() {
   if (notFound) {
     return (
       <Main>
-        <p className='text-destructive'>Vente not found.</p>
+        <ApiErrorState />
       </Main>
     )
   }

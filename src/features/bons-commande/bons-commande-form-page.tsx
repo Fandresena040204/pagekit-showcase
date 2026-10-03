@@ -1,3 +1,4 @@
+import { ApiErrorState } from '@/components/errors/api-error-state'
 import { useNavigate, useParams } from '@tanstack/react-router'
 import { Loader2, Plus, Trash2 } from 'lucide-react'
 import { useMasterDetailForm } from 'tanstack-pagekit'
@@ -80,7 +81,7 @@ export function BonsCommandeFormPage() {
   if (notFound) {
     return (
       <Main>
-        <p className='text-destructive'>Bon de commande not found.</p>
+        <ApiErrorState />
       </Main>
     )
   }

@@ -1,3 +1,4 @@
+import { ApiErrorState } from '@/components/errors/api-error-state'
 import { useNavigate, useParams } from '@tanstack/react-router'
 import { Loader2 } from 'lucide-react'
 import { useResourceForm } from 'tanstack-pagekit'
@@ -48,7 +49,7 @@ export function ProductsFormPage() {
   if (notFound) {
     return (
       <Main>
-        <p className='text-destructive'>Product not found.</p>
+        <ApiErrorState />
       </Main>
     )
   }

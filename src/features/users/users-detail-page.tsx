@@ -1,3 +1,4 @@
+import { ApiErrorState } from '@/components/errors/api-error-state'
 import { useParams } from '@tanstack/react-router'
 import { Loader2 } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
@@ -24,7 +25,7 @@ export function UsersDetailPage() {
   if (isError || !user) {
     return (
       <Main>
-        <p className='text-destructive'>User not found.</p>
+        <ApiErrorState />
       </Main>
     )
   }

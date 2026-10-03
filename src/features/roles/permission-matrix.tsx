@@ -1,3 +1,4 @@
+import { ApiErrorState } from '@/components/errors/api-error-state'
 import { useMemo, useState } from 'react'
 import { ChevronDown, Loader2 } from 'lucide-react'
 import { Checkbox } from '@/components/ui/checkbox'
@@ -38,7 +39,7 @@ export function PermissionMatrix({ value, onChange }: PermissionMatrixProps) {
   }
 
   if (isError) {
-    return <p className='text-destructive'>Failed to load permissions.</p>
+    return <ApiErrorState />
   }
 
   return (

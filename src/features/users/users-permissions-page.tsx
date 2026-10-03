@@ -1,3 +1,4 @@
+import { ApiErrorState } from '@/components/errors/api-error-state'
 import { useState } from 'react'
 import { useNavigate, useParams } from '@tanstack/react-router'
 import { Loader2 } from 'lucide-react'
@@ -26,7 +27,7 @@ export function UsersPermissionsPage() {
   if (isError || !user) {
     return (
       <Main>
-        <p className='text-destructive'>User not found.</p>
+        <ApiErrorState />
       </Main>
     )
   }

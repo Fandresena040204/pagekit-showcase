@@ -1,3 +1,4 @@
+import { ApiErrorState } from '@/components/errors/api-error-state'
 import { Fragment, useMemo, useState } from 'react'
 import { Link } from '@tanstack/react-router'
 import { flexRender } from '@tanstack/react-table'
@@ -70,7 +71,7 @@ export function VentesListPage() {
           <Loader2 className='animate-spin' />
         </div>
       ) : isError ? (
-        <p className='text-destructive'>Failed to load ventes.</p>
+        <ApiErrorState />
       ) : (
         <div className='flex flex-1 flex-col gap-4'>
           <DataTableToolbar

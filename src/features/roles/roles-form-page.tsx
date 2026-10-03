@@ -1,3 +1,4 @@
+import { ApiErrorState } from '@/components/errors/api-error-state'
 import { useNavigate, useParams } from '@tanstack/react-router'
 import { Loader2 } from 'lucide-react'
 import { useResourceForm, type FieldDescriptor } from 'tanstack-pagekit'
@@ -35,7 +36,7 @@ export function RolesFormPage() {
   if (notFound) {
     return (
       <Main>
-        <p className='text-destructive'>Role not found.</p>
+        <ApiErrorState />
       </Main>
     )
   }

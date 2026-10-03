@@ -1,3 +1,4 @@
+import { ApiErrorState } from '@/components/errors/api-error-state'
 import { Link, useParams } from '@tanstack/react-router'
 import { Loader2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
@@ -20,7 +21,7 @@ export function RolesDetailPage() {
   if (isError || !role) {
     return (
       <Main>
-        <p className='text-destructive'>Role not found.</p>
+        <ApiErrorState />
       </Main>
     )
   }

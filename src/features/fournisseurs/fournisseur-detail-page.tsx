@@ -1,3 +1,4 @@
+import { ApiErrorState } from '@/components/errors/api-error-state'
 import { Link, useParams } from '@tanstack/react-router'
 import { Loader2 } from 'lucide-react'
 import { renderDetailField } from 'tanstack-pagekit'
@@ -22,7 +23,7 @@ export function FournisseurDetailPage() {
   if (isError || !fournisseur) {
     return (
       <Main>
-        <p className='text-destructive'>Fournisseur not found.</p>
+        <ApiErrorState />
       </Main>
     )
   }

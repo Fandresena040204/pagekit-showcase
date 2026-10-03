@@ -1,3 +1,4 @@
+import { ApiErrorState } from '@/components/errors/api-error-state'
 import { useMemo } from 'react'
 import { PrefillSource } from '@/lib/prefill-sources'
 import { Link, useParams } from '@tanstack/react-router'
@@ -39,7 +40,7 @@ export function BonCommandeDetailPage() {
   if (isError || !bonCommande) {
     return (
       <Main>
-        <p className='text-destructive'>Bon de commande not found.</p>
+        <ApiErrorState />
       </Main>
     )
   }
