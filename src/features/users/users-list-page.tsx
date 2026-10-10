@@ -33,10 +33,12 @@ function withSortableHeader<TRow>(descriptor: FieldDescriptor<TRow>): Pick<Colum
 }
 
 /**
- * Django's UserViewSet is read-only (see resource.ts) — no "Add User" here,
- * matching what the real API actually supports. Roles and permission
- * overrides are edited on their own pages (users/$id/roles,
- * users/$id/permissions), with the same Enregistrer/Annuler flow as Roles.
+ * "Add User" links to /users/saisie (users-create-page.tsx) — the backend
+ * enforces who may actually create one (HasRolePermission: add_user,
+ * admin and dg today), the button itself isn't permission-gated. Roles
+ * and permission overrides on an existing account are edited on their own
+ * pages (users/$id/roles, users/$id/permissions), with the same
+ * Enregistrer/Annuler flow as Roles.
  */
 export function UsersListPage() {
   const router = useTanStackRouterAdapter()
@@ -88,9 +90,14 @@ export function UsersListPage() {
 
   return (
     <Main className='flex flex-1 flex-col gap-4 sm:gap-6'>
-      <div>
-        <h2 className='text-2xl font-bold tracking-tight'>Users</h2>
-        <p className='text-muted-foreground'>Gérez les rôles et les permissions de chaque utilisateur. Les comptes ne se créent pas depuis cette page.</p>
+      <div className='flex flex-wrap items-end justify-between gap-2'>
+        <div>
+          <h2 className='text-2xl font-bold tracking-tight'>Users</h2>
+          <p className='text-muted-foreground'>Créez des comptes et gérez les rôles et permissions de chaque utilisateur.</p>
+        </div>
+        <Button asChild>
+          <Link to='/users/saisie'>Nouvel utilisateur</Link>
+        </Button>
       </div>
 
       {isLoading ? (

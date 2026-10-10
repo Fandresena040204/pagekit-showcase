@@ -22,6 +22,7 @@ import { ProductsListPage } from '@/features/products/products-list-page'
 import { RolesDetailPage } from '@/features/roles/roles-detail-page'
 import { RolesFormPage } from '@/features/roles/roles-form-page'
 import { RolesListPage } from '@/features/roles/roles-list-page'
+import { UsersCreatePage } from '@/features/users/users-create-page'
 import { UsersDetailPage } from '@/features/users/users-detail-page'
 import { UsersPermissionsPage } from '@/features/users/users-permissions-page'
 import { UsersRolesPage } from '@/features/users/users-roles-page'
@@ -237,6 +238,12 @@ const usersListRoute = createRoute({
   validateSearch: (search: Record<string, unknown>) => search,
 })
 
+const usersCreateRoute = createRoute({
+  getParentRoute: () => authenticatedRoute,
+  path: '/users/saisie',
+  component: UsersCreatePage,
+})
+
 const usersDetailRoute = createRoute({
   getParentRoute: () => authenticatedRoute,
   path: '/users/$id',
@@ -284,6 +291,7 @@ const routeTree = rootRoute.addChildren([
     rolesEditRoute,
     rolesDetailRoute,
     usersListRoute,
+    usersCreateRoute,
     usersDetailRoute,
     usersRolesRoute,
     usersPermissionsRoute,
