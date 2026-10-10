@@ -4,6 +4,48 @@
  */
 
 export interface paths {
+    "/api/audit-logs/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * @description Lecture seule (`apps.core.models.AuditLog` n'a pas d'API d'écriture)
+         *     — `view_auditlog`, comme n'importe quel autre modèle (voir
+         *     `HasRolePermission`).
+         */
+        get: operations["audit_logs_list"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/audit-logs/{id}/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * @description Lecture seule (`apps.core.models.AuditLog` n'a pas d'API d'écriture)
+         *     — `view_auditlog`, comme n'importe quel autre modèle (voir
+         *     `HasRolePermission`).
+         */
+        get: operations["audit_logs_retrieve"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/auth/me/": {
         parameters: {
             query?: never;
@@ -334,8 +376,9 @@ export interface paths {
         get?: never;
         put?: never;
         /**
-         * @description Takes a set of user credentials and returns an access and refresh JSON web
-         *     token pair to prove the authentication of those credentials.
+         * @description Même comportement que `TokenObtainPairView`, en plus d'une entrée
+         *     `AuditLog` sur une connexion réussie — `login_failed` n'est volontairement
+         *     pas journalisé (décision prise avec l'équipe).
          */
         post: operations["token_create"];
         delete?: never;
@@ -467,8 +510,20 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
+        /**
+         * @description À mélanger dans un `ModelViewSet` : définir `workflow` (la liste de
+         *     règles) et, si `get_queryset()` ne renvoie pas toujours le modèle
+         *     réel (ex. une vue de lecture pour `list`/`retrieve`), `workflow_model`
+         *     explicitement.
+         */
         get: operations["ventes_list"];
         put?: never;
+        /**
+         * @description À mélanger dans un `ModelViewSet` : définir `workflow` (la liste de
+         *     règles) et, si `get_queryset()` ne renvoie pas toujours le modèle
+         *     réel (ex. une vue de lecture pour `list`/`retrieve`), `workflow_model`
+         *     explicitement.
+         */
         post: operations["ventes_create"];
         delete?: never;
         options?: never;
@@ -483,32 +538,62 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
+        /**
+         * @description À mélanger dans un `ModelViewSet` : définir `workflow` (la liste de
+         *     règles) et, si `get_queryset()` ne renvoie pas toujours le modèle
+         *     réel (ex. une vue de lecture pour `list`/`retrieve`), `workflow_model`
+         *     explicitement.
+         */
         get: operations["ventes_retrieve"];
+        /**
+         * @description À mélanger dans un `ModelViewSet` : définir `workflow` (la liste de
+         *     règles) et, si `get_queryset()` ne renvoie pas toujours le modèle
+         *     réel (ex. une vue de lecture pour `list`/`retrieve`), `workflow_model`
+         *     explicitement.
+         */
         put: operations["ventes_update"];
         post?: never;
+        /**
+         * @description À mélanger dans un `ModelViewSet` : définir `workflow` (la liste de
+         *     règles) et, si `get_queryset()` ne renvoie pas toujours le modèle
+         *     réel (ex. une vue de lecture pour `list`/`retrieve`), `workflow_model`
+         *     explicitement.
+         */
         delete: operations["ventes_destroy"];
         options?: never;
         head?: never;
+        /**
+         * @description À mélanger dans un `ModelViewSet` : définir `workflow` (la liste de
+         *     règles) et, si `get_queryset()` ne renvoie pas toujours le modèle
+         *     réel (ex. une vue de lecture pour `list`/`retrieve`), `workflow_model`
+         *     explicitement.
+         */
         patch: operations["ventes_partial_update"];
         trace?: never;
     };
-    "/api/ventes/{id}/annuler/": {
+    "/api/ventes/{id}/allowed-steps/": {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
-        get?: never;
+        /**
+         * @description À mélanger dans un `ModelViewSet` : définir `workflow` (la liste de
+         *     règles) et, si `get_queryset()` ne renvoie pas toujours le modèle
+         *     réel (ex. une vue de lecture pour `list`/`retrieve`), `workflow_model`
+         *     explicitement.
+         */
+        get: operations["ventes_allowed_steps_retrieve"];
         put?: never;
-        post: operations["ventes_annuler_create"];
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/api/ventes/{id}/valider/": {
+    "/api/ventes/{id}/transition/{step}/": {
         parameters: {
             query?: never;
             header?: never;
@@ -517,7 +602,13 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        post: operations["ventes_valider_create"];
+        /**
+         * @description À mélanger dans un `ModelViewSet` : définir `workflow` (la liste de
+         *     règles) et, si `get_queryset()` ne renvoie pas toujours le modèle
+         *     réel (ex. une vue de lecture pour `list`/`retrieve`), `workflow_model`
+         *     explicitement.
+         */
+        post: operations["ventes_transition_create"];
         delete?: never;
         options?: never;
         head?: never;
@@ -528,6 +619,30 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        /**
+         * @description * `login` - Connexion
+         *     * `create` - Création
+         *     * `update` - Modification
+         *     * `delete` - Suppression
+         *     * `workflow` - Action de workflow
+         * @enum {string}
+         */
+        ActionEnum: "login" | "create" | "update" | "delete" | "workflow";
+        AuditLog: {
+            readonly id: number;
+            /** Format: date-time */
+            readonly occurred_at: string;
+            actor?: string | null;
+            actor_username?: string;
+            action: components["schemas"]["ActionEnum"];
+            action_name?: string;
+            entity_type: string;
+            entity_id?: string;
+            changes?: unknown;
+            result?: string;
+            method?: string;
+            path?: string;
+        };
         BonCommande: {
             readonly id: string;
             customer: string;
@@ -553,6 +668,35 @@ export interface components {
             discount_percent?: string;
             /** Format: decimal */
             tva_rate?: string;
+        };
+        BonCommandeLigneRead: {
+            id: string;
+            product: string;
+            product_name: string;
+            product_sku: string;
+            /** Format: decimal */
+            quantity: string;
+            /** Format: decimal */
+            unit_price: string;
+            /** Format: decimal */
+            discount_percent: string;
+            /** Format: decimal */
+            tva_rate: string;
+        };
+        BonCommandeRead: {
+            id: string;
+            customer: string;
+            customer_name: string;
+            currency: string;
+            /** Format: decimal */
+            discount_percent: string;
+            /** Format: date */
+            expected_delivery_date?: string | null;
+            readonly lines: components["schemas"]["BonCommandeLigneRead"][];
+            /** Format: date-time */
+            created_at: string;
+            /** Format: date-time */
+            updated_at: string;
         };
         /**
          * @description * `MGA` - Ariary malgache
@@ -613,7 +757,7 @@ export interface components {
          * @enum {string}
          */
         MethodEnum: "cash" | "card" | "transfer";
-        PaginatedBonCommandeList: {
+        PaginatedAuditLogList: {
             /** @example 123 */
             count: number;
             /**
@@ -626,7 +770,22 @@ export interface components {
              * @example http://api.example.org/accounts/?page=2
              */
             previous?: string | null;
-            results: components["schemas"]["BonCommande"][];
+            results: components["schemas"]["AuditLog"][];
+        };
+        PaginatedBonCommandeReadList: {
+            /** @example 123 */
+            count: number;
+            /**
+             * Format: uri
+             * @example http://api.example.org/accounts/?page=4
+             */
+            next?: string | null;
+            /**
+             * Format: uri
+             * @example http://api.example.org/accounts/?page=2
+             */
+            previous?: string | null;
+            results: components["schemas"]["BonCommandeRead"][];
         };
         PaginatedCustomerList: {
             /** @example 123 */
@@ -1087,14 +1246,14 @@ export interface components {
         /**
          * @description Backed by `VenteListView` (DB view) — used for `list`/`retrieve` only
          *     (`VenteViewSet.get_serializer_class`). `customer_name` comes from the
-         *     view's join; `create`/`update`/`valider`/`annuler` go through the
-         *     writable `Vente` model + `VenteSerializer` instead.
+         *     view's join; `create`/`update`/workflow transitions go through the
+         *     writable `Vente` model instead.
          */
         VenteRead: {
             id: string;
             customer: string;
             customer_name: string;
-            status: string;
+            status: number;
             priority: string;
             currency: string;
             /** Format: decimal */
@@ -1111,18 +1270,24 @@ export interface components {
             expected_delivery_date?: string | null;
             notes: string;
             readonly lines: components["schemas"]["VenteLigneRead"][];
+            readonly allowed_steps: string[];
             /** Format: date-time */
             created_at: string;
             /** Format: date-time */
             updated_at: string;
         };
         /**
-         * @description * `draft` - Brouillon
-         *     * `validated` - Validée
-         *     * `cancelled` - Annulée
-         * @enum {string}
+         * @description * `1` - Brouillon
+         *     * `3` - Validée (achat)
+         *     * `6` - Validée (caisse)
+         *     * `9` - Validée (DG)
+         *     * `-1` - Annulée
+         *     * `-3` - Rejetée (achat)
+         *     * `-6` - Rejetée (caisse)
+         *     * `-9` - Rejetée (DG)
+         * @enum {integer}
          */
-        VenteStatusEnum: "draft" | "validated" | "cancelled";
+        VenteStatusEnum: 1 | 3 | 6 | 9 | -1 | -3 | -6 | -9;
     };
     responses: never;
     parameters: never;
@@ -1132,6 +1297,66 @@ export interface components {
 }
 export type $defs = Record<string, never>;
 export interface operations {
+    audit_logs_list: {
+        parameters: {
+            query?: {
+                /**
+                 * @description * `login` - Connexion
+                 *     * `create` - Création
+                 *     * `update` - Modification
+                 *     * `delete` - Suppression
+                 *     * `workflow` - Action de workflow
+                 */
+                action?: "create" | "delete" | "login" | "update" | "workflow";
+                actor?: string;
+                entity_type?: string;
+                /** @description Quel champ utiliser pour classer les résultats. */
+                ordering?: string;
+                /** @description Un numéro de page de l'ensemble des résultats. */
+                page?: number;
+                /** @description Nombre de résultats à retourner par page. */
+                page_size?: number;
+                /** @description Un terme de recherche. */
+                search?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PaginatedAuditLogList"];
+                };
+            };
+        };
+    };
+    audit_logs_retrieve: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Un(une) valeur entière unique identifiant ce(cette) audit log. */
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AuditLog"];
+                };
+            };
+        };
+    };
     auth_me_retrieve: {
         parameters: {
             query?: never;
@@ -1249,7 +1474,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["PaginatedBonCommandeList"];
+                    "application/json": components["schemas"]["PaginatedBonCommandeReadList"];
                 };
             };
         };
@@ -1284,7 +1509,7 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                /** @description Un(une) valeur unique identifiant ce(cette) bon commande. */
+                /** @description Un(une) valeur unique identifiant ce(cette) bon commande list view. */
                 id: string;
             };
             cookie?: never;
@@ -1296,7 +1521,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["BonCommande"];
+                    "application/json": components["schemas"]["BonCommandeRead"];
                 };
             };
         };
@@ -2882,7 +3107,7 @@ export interface operations {
             };
         };
     };
-    ventes_annuler_create: {
+    ventes_allowed_steps_retrieve: {
         parameters: {
             query?: never;
             header?: never;
@@ -2892,13 +3117,7 @@ export interface operations {
             };
             cookie?: never;
         };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["Vente"];
-                "application/x-www-form-urlencoded": components["schemas"]["Vente"];
-                "multipart/form-data": components["schemas"]["Vente"];
-            };
-        };
+        requestBody?: never;
         responses: {
             200: {
                 headers: {
@@ -2910,13 +3129,14 @@ export interface operations {
             };
         };
     };
-    ventes_valider_create: {
+    ventes_transition_create: {
         parameters: {
             query?: never;
             header?: never;
             path: {
                 /** @description Un(une) valeur unique identifiant ce(cette) vente. */
                 id: string;
+                step: string;
             };
             cookie?: never;
         };

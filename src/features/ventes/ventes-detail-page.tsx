@@ -8,8 +8,9 @@ import { Button } from '@/components/ui/button'
 import { Main } from '@/components/layout/main'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import type { Vente } from '@/features/types'
-import { useAnnulerVente, useValiderVente, useVente } from './resource'
+import { useVente, useVenteTransition } from './resource'
 import { CURRENCY_FIELD, CUSTOMER_FIELD, ID_FIELD, STATUS_FIELD, TOTAL_FIELD } from './fields'
+import { venteStepLabel } from './status'
 import { LignesTab } from './tabs/lignes-tab'
 import { LivraisonsTab } from './tabs/livraisons-tab'
 import { PaiementsTab } from './tabs/paiements-tab'
@@ -27,8 +28,7 @@ export function VentesDetailPage() {
     useEntity: () => useVente(id),
   })
 
-  const validerVente = useValiderVente()
-  const annulerVente = useAnnulerVente()
+  const transition = useVenteTransition()
 
   if (isLoading) {
     return (
@@ -58,29 +58,20 @@ export function VentesDetailPage() {
           <p className='text-muted-foreground'>Vente details and lines.</p>
         </div>
         <div className='flex gap-2'>
-          {/* Mirror the backend's FSM: draft -> validated -> cancelled
-              (Vente.validate_vente/cancel_vente) — only the action that's a
-              legal transition from the current status is shown. */}
-          {entity.status === 'draft' && (
+          {/* One button per step the server says this user may play from
+              this status (`allowed_steps`, see VenteReadSerializer) — no
+              status/permission logic duplicated here. */}
+          {entity.allowed_steps.map((step) => (
             <Button
+              key={step}
               variant='outline'
-              disabled={validerVente.isPending}
-              onClick={() => validerVente.mutate(entity.id)}
+              disabled={transition.isPending}
+              onClick={() => transition.mutate({ id: entity.id, step })}
             >
-              {validerVente.isPending && <Loader2 className='animate-spin' />}
-              Valider
+              {transition.isPending && <Loader2 className='animate-spin' />}
+              {venteStepLabel(step)}
             </Button>
-          )}
-          {entity.status === 'validated' && (
-            <Button
-              variant='outline'
-              disabled={annulerVente.isPending}
-              onClick={() => annulerVente.mutate(entity.id)}
-            >
-              {annulerVente.isPending && <Loader2 className='animate-spin' />}
-              Annuler
-            </Button>
-          )}
+          ))}
           <Button asChild variant='outline'>
             <Link to='/ventes/saisie/$id' params={{ id: entity.id }}>
               Edit

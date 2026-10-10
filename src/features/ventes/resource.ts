@@ -31,17 +31,13 @@ export const {
   useDelete: useDeleteVente,
 } = createCrudResource<Vente, VenteForm>('ventes', '/api/ventes/', 'Vente', { toPayload })
 
-// Custom actions (not plain CRUD) — same invalidate + notify mechanics as
-// the hooks above, via tanstack-pagekit's `createActionHook`. Mirror the
-// backend's FSM transitions: draft -> validated -> cancelled.
-export const useValiderVente = createActionHook<string>(
+// One generic action for every workflow step (valider_achat, rejeter_achat,
+// valider_caisse, ..., annuler) — mirrors the backend's generic
+// `POST /api/ventes/{id}/transition/{step}/` (WorkflowMixin, see
+// apps/accounts/workflow.py). Which steps are actually callable comes from
+// `Vente.allowed_steps` (server-computed), not from this hook.
+export const useVenteTransition = createActionHook<{ id: string; step: string }>(
   ['ventes'],
-  (id) => httpClient.post(`/api/ventes/${id}/valider/`, {}),
-  () => toast.success('Vente validated.')
-)
-
-export const useAnnulerVente = createActionHook<string>(
-  ['ventes'],
-  (id) => httpClient.post(`/api/ventes/${id}/annuler/`, {}),
-  () => toast.success('Vente cancelled.')
+  ({ id, step }) => httpClient.post(`/api/ventes/${id}/transition/${step}/`, {}),
+  () => toast.success('Vente updated.')
 )

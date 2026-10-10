@@ -13,6 +13,7 @@ import { customersApi } from '@/features/customers/resource'
 import type { Vente } from '@/features/types'
 import { useVentesPage } from './resource'
 import { VENTES_COLUMNS } from './fields'
+import { VENTE_STATUS_FILTER_OPTIONS } from './status'
 import { LignesTab } from './tabs/lignes-tab'
 
 export function VentesListPage() {
@@ -81,11 +82,7 @@ export function VentesListPage() {
               {
                 columnId: 'status',
                 title: 'Status',
-                options: [
-                  { label: 'Draft', value: 'draft' },
-                  { label: 'Validated', value: 'validated' },
-                  { label: 'Cancelled', value: 'cancelled' },
-                ],
+                options: VENTE_STATUS_FILTER_OPTIONS,
               },
               {
                 columnId: 'customer_name',

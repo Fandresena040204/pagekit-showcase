@@ -111,7 +111,9 @@ export type BonCommandeForm = {
   lines: BonCommandeLineForm[]
 }
 
-export type VenteStatus = 'draft' | 'validated' | 'cancelled'
+// Entier (voir apps/ventes/workflow.py:VenteStatus côté backend) : porte
+// l'ordre du workflow. Les libellés et styles vivent dans ./ventes/status.ts.
+export type VenteStatus = 1 | 3 | 6 | 9 | -1 | -3 | -6 | -9
 export type VentePriority = 'low' | 'normal' | 'high'
 export type VenteCurrency = 'MGA' | 'EUR' | 'USD'
 
@@ -151,6 +153,14 @@ export type Vente = {
   expected_delivery_date: string | null
   notes: string
   lines: VenteLigne[]
+  // "Qui a validé/rejeté quel niveau, et quand" n'est pas ici : c'est dans
+  // le journal d'audit général (écran Historique), pas une colonne par
+  // niveau — un changement de `status` y est tracé comme n'importe quelle
+  // modification.
+  /** Étapes jouables par l'utilisateur courant depuis ce statut (voir
+   * VenteReadSerializer.get_allowed_steps côté backend) — seule source de
+   * vérité pour quels boutons de workflow afficher. */
+  allowed_steps: string[]
 }
 
 export type VenteLineForm = {

@@ -6,16 +6,11 @@ import { renderLink } from '@/components/fields/render-link'
 import { withSortableHeader } from '@/components/fields/with-sortable-header'
 import { customersApi } from '@/features/customers/resource'
 import { productsApi } from '@/features/products/resource'
-import type { Product, Vente, VenteForm, VenteStatus } from '@/features/types'
+import type { Product, Vente, VenteForm } from '@/features/types'
+import { VENTE_STATUS_BADGE_VARIANT, VENTE_STATUS_LABELS } from './status'
 
 const arrayFilter = (row: { getValue: (id: string) => unknown }, id: string, value: string[]) =>
-  value.includes(row.getValue(id) as string)
-
-const STATUS_BADGE_VARIANT: Record<VenteStatus, string> = {
-  draft: 'bg-muted text-muted-foreground',
-  validated: 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-100',
-  cancelled: 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-100',
-}
+  value.includes(String(row.getValue(id)))
 
 /**
  * Declared once, reused as a list column (`renderColumn` in
@@ -49,8 +44,8 @@ export const STATUS_FIELD: FieldDescriptor<Vente> = {
   label: 'Status',
   type: 'text',
   render: (row) => (
-    <Badge variant='outline' className={cn('capitalize', STATUS_BADGE_VARIANT[row.status])}>
-      {row.status}
+    <Badge variant='outline' className={cn(VENTE_STATUS_BADGE_VARIANT[row.status])}>
+      {VENTE_STATUS_LABELS[row.status]}
     </Badge>
   ),
 }
