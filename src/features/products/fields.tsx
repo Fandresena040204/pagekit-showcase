@@ -1,9 +1,8 @@
 import { type ColumnDef } from '@tanstack/react-table'
 import { Badge } from '@/components/ui/badge'
-import { renderColumn, type FieldDescriptor } from 'tanstack-pagekit'
+import { rangeFilterFn, renderColumn, type FieldDescriptor } from 'tanstack-pagekit'
 import { renderLink } from '@/components/fields/render-link'
 import { withSortableHeader } from '@/components/fields/with-sortable-header'
-import { rangeFilterFn } from '@/lib/fields/range-filter-fn'
 import { productCategoriesApi } from '@/features/product-categories/resource'
 import type { Product, ProductForm } from '@/features/types'
 

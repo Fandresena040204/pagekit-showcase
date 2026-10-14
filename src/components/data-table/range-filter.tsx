@@ -1,6 +1,6 @@
 import { PlusCircledIcon } from '@radix-ui/react-icons'
 import { type Column } from '@tanstack/react-table'
-import { type RangeFilterValue } from '@/lib/fields/range-filter-fn'
+import { type RangeValue } from 'tanstack-pagekit'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -35,10 +35,10 @@ export function DataTableRangeFilter<TData, TValue>({
   title,
   type,
 }: DataTableRangeFilterProps<TData, TValue>) {
-  const value = (column?.getFilterValue() as RangeFilterValue | undefined) ?? {}
+  const value = (column?.getFilterValue() as RangeValue | undefined) ?? {}
   const isActive = !!(value.min || value.max)
 
-  function setRange(patch: Partial<RangeFilterValue>) {
+  function setRange(patch: Partial<RangeValue>) {
     const next = { ...value, ...patch }
     column?.setFilterValue(next.min || next.max ? next : undefined)
   }

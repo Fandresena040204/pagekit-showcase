@@ -1,5 +1,5 @@
 import { Outlet } from '@tanstack/react-router'
-import { getCookie } from '@/lib/cookies'
+import { getCookie } from 'tanstack-pagekit'
 import { cn } from '@/lib/utils'
 import { LayoutProvider } from '@/context/layout-provider'
 import { SidebarInset, SidebarProvider } from '@/components/ui/sidebar'

@@ -1,5 +1,5 @@
 import { createContext, useContext, useEffect, useMemo, useState } from 'react'
-import { getCookie, removeCookie, setCookie } from '@/lib/cookies'
+import { getCookie, removeCookie, setCookie } from 'tanstack-pagekit'
 
 type Theme = 'dark' | 'light' | 'system'
 type ResolvedTheme = Exclude<Theme, 'system'>
