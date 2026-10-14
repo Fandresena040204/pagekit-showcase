@@ -1,5 +1,5 @@
 import { create } from 'zustand'
-import { getCookie, removeCookie, setCookie } from '@/lib/cookies'
+import { getCookie, removeCookie, setCookie } from 'tanstack-pagekit'
 
 const ACCESS_TOKEN_COOKIE = 'access_token'
 const REFRESH_TOKEN_COOKIE = 'refresh_token'

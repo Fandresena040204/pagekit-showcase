@@ -1,11 +1,11 @@
 import { ApiErrorState } from '@/components/errors/api-error-state'
 import { useNavigate, useParams, useSearch } from '@tanstack/react-router'
 import { Loader2, Plus, Trash2 } from 'lucide-react'
-import { useMasterDetailForm, type PrefillOptions } from 'tanstack-pagekit'
+import { transformationSource, useMasterDetailForm, type PrefillOptions } from 'tanstack-pagekit'
 import { Button } from '@/components/ui/button'
 import { Main } from '@/components/layout/main'
 import { RenderFormField } from '@/components/fields/render-form-field'
-import { transformationSource } from '@/lib/transformation-source'
+import { httpClient } from '@/lib/http-client'
 import { PrefillSource } from '@/lib/prefill-sources'
 import type { Vente, VenteForm, VenteLineForm } from '@/features/types'
 import { computeVenteBreakdown, type VenteBreakdown } from './totals'
@@ -35,7 +35,7 @@ const emptyValues: VenteForm = {
 }
 
 const prefillSources: PrefillOptions<VenteForm>['sources'] = {
-  [PrefillSource.BON_COMMANDE]: transformationSource<VenteForm>('/api/bons-commande/', 'to_vente_defaults'),
+  [PrefillSource.BON_COMMANDE]: transformationSource<VenteForm>(httpClient, '/api/bons-commande/', 'to_vente_defaults'),
 }
 
 export function VentesFormPage() {

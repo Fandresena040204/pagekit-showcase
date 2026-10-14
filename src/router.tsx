@@ -30,7 +30,7 @@ import { UsersListPage } from '@/features/users/users-list-page'
 import { VentesDetailPage } from '@/features/ventes/ventes-detail-page'
 import { VentesFormPage } from '@/features/ventes/ventes-form-page'
 import { VentesListPage } from '@/features/ventes/ventes-list-page'
-import { prefillSearchSchema } from './lib/prefill-search'
+import { prefillSearchSchema } from 'tanstack-pagekit'
 
 function RootLayout() {
   return (
