@@ -2,6 +2,7 @@ import { Link } from '@tanstack/react-router'
 import { Ban, Lock, SearchX, ServerCrash, WifiOff, type LucideIcon } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { isAxiosError } from 'axios'
+import { parseApiError } from 'tanstack-pagekit/axios'
 
 type ErrorInfo = { icon: LucideIcon; title: string; description: string }
 
@@ -54,13 +55,29 @@ function describe(status: number | undefined, noResponse = false): ErrorInfo {
  * Full-width message shown in place of a page's content when loading fails.
  * Pass the thrown `error` (axios errors give their HTTP status), or a `status`
  * when there is no error object (e.g. an unknown URL).
+ * If the error has a body matching the API contract ({code, message, champs}),
+ * the server's `message` is used as description (fallback to status-based text).
  */
 export function ApiErrorState({ error, status }: { error?: unknown; status?: number }) {
   let info: ErrorInfo
+  let serverMessage: string | undefined
+
+  // Try to extract server message from standardized error format
+  if (error) {
+    const parsed = parseApiError(error)
+    if (parsed.code !== 'unknown_error' && parsed.code !== 'network_error') {
+      serverMessage = parsed.message
+    }
+  }
+
   if (status !== undefined) info = describe(status)
   else if (isAxiosError(error)) info = describe(error.response?.status ?? undefined, true)
   else info = { icon: Ban, title: 'Erreur', description: 'Une erreur est survenue pendant le chargement.' }
-  const { icon: Icon, title, description } = info
+
+  // Use server message as description if available, otherwise fallback to status-based text
+  const description = serverMessage ?? info.description
+
+  const { icon: Icon, title } = info
   return (
     <div role='alert' className='flex flex-1 flex-col items-center justify-center gap-3 py-16 text-center'>
       <Icon className='size-10 text-muted-foreground' aria-hidden />

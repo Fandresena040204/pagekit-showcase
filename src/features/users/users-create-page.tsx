@@ -1,4 +1,3 @@
-import { isAxiosError } from 'axios'
 import { useState } from 'react'
 import { useNavigate } from '@tanstack/react-router'
 import { Loader2 } from 'lucide-react'
@@ -10,15 +9,7 @@ import { Main } from '@/components/layout/main'
 import { PasswordInput } from '@/components/password-input'
 import { useRoles } from '@/features/roles/resource'
 import { useCreateUser } from './resource'
-
-// DRF renders validation errors as `{field: [messages]}` (ex. `password`
-// too weak, `username` already taken) — flattened into one list, since this
-// form has no per-field error slot like `RenderFormField` does.
-function errorMessages(error: unknown): string[] {
-  if (!isAxiosError(error) || !error.response?.data) return ['Une erreur est survenue.']
-  const data = error.response.data as Record<string, unknown>
-  return Object.values(data).flatMap((value) => (Array.isArray(value) ? value.map(String) : [String(value)]))
-}
+import { parseApiError } from 'tanstack-pagekit/axios'
 
 /** Create-only, not built on `useResourceForm` : `UserViewSet` has no
  * update endpoint (list/retrieve/create — see resource.ts), so there is no
@@ -48,7 +39,10 @@ export function UsersCreatePage() {
       await createUser.mutateAsync({ username, email, password, roles: selectedRoles })
       navigate({ to: '/users' })
     } catch (error) {
-      setErrors(errorMessages(error))
+      const parsed = parseApiError(error)
+      // Flatten champs messages, or use the main message if champs is empty
+      const messages = Object.values(parsed.champs).flat()
+      setErrors(messages.length > 0 ? messages : [parsed.message])
     }
   }
 

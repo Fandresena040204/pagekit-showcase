@@ -5,6 +5,7 @@ import { transformationSource, useMasterDetailForm, type PrefillOptions } from '
 import { Button } from '@/components/ui/button'
 import { Main } from '@/components/layout/main'
 import { RenderFormField } from '@/components/fields/render-form-field'
+import { FormServerError } from '@/components/fields/form-server-error'
 import { httpClient } from '@/lib/http-client'
 import { PrefillSource } from '@/lib/prefill-sources'
 import type { Vente, VenteForm, VenteLineForm } from '@/features/types'
@@ -213,6 +214,7 @@ export function VentesFormPage() {
           }}
         </form.Subscribe>
 
+        <FormServerError form={form} />
         <div className='flex justify-end gap-2 pt-2'>
           <Button type='button' variant='outline' onClick={() => navigate({ to: '/ventes' })}>
             Annuler
