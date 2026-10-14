@@ -5,6 +5,7 @@ import { useResourceForm, type FieldDescriptor } from 'tanstack-pagekit'
 import { Button } from '@/components/ui/button'
 import { Main } from '@/components/layout/main'
 import { RenderFormField } from '@/components/fields/render-form-field'
+import { FormServerError } from '@/components/fields/form-server-error'
 import type { Role, RoleForm } from '@/features/types'
 import { useCreateRole, useRole, useUpdateRole } from './resource'
 import { PermissionMatrix } from './permission-matrix'
@@ -67,6 +68,7 @@ export function RolesFormPage() {
           )}
         </form.Field>
 
+        <FormServerError form={form} />
         <div className='flex justify-end gap-2 pt-2'>
           <Button type='button' variant='outline' onClick={() => navigate({ to: '/roles' })}>
             Cancel

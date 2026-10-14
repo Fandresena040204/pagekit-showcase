@@ -7,6 +7,7 @@ import { Checkbox } from '@/components/ui/checkbox'
 import { Label } from '@/components/ui/label'
 import { Main } from '@/components/layout/main'
 import { RenderFormField } from '@/components/fields/render-form-field'
+import { FormServerError } from '@/components/fields/form-server-error'
 import type { Fournisseur, FournisseurForm } from '@/features/types'
 import { useCreateFournisseur, useFournisseur, useUpdateFournisseur } from './resource'
 import { EMAIL_FORM_FIELD, NAME_FORM_FIELD } from './fields'
@@ -77,6 +78,7 @@ export function FournisseursFormPage() {
           </form.Field>
         </div>
 
+        <FormServerError form={form} />
         <div className='flex justify-end gap-2 pt-2'>
           <Button type='button' variant='outline' onClick={() => navigate({ to: '/fournisseurs' })}>
             Cancel

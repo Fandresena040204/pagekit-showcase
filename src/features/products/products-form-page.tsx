@@ -7,6 +7,7 @@ import { Checkbox } from '@/components/ui/checkbox'
 import { Label } from '@/components/ui/label'
 import { Main } from '@/components/layout/main'
 import { RenderFormField } from '@/components/fields/render-form-field'
+import { FormServerError } from '@/components/fields/form-server-error'
 import type { Product, ProductForm } from '@/features/types'
 import { useCreateProduct, useProduct, useUpdateProduct } from './resource'
 import { CATEGORY_FORM_FIELD, DESCRIPTION_FORM_FIELD, NAME_FORM_FIELD, PRICE_FORM_FIELD, SKU_FORM_FIELD } from './fields'
@@ -93,6 +94,7 @@ export function ProductsFormPage() {
           </form.Field>
         </div>
 
+        <FormServerError form={form} />
         <div className='flex justify-end gap-2 pt-2'>
           <Button type='button' variant='outline' onClick={() => navigate({ to: '/products' })}>
             Cancel

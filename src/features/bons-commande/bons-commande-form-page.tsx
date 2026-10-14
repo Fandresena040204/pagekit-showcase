@@ -5,6 +5,7 @@ import { useMasterDetailForm } from 'tanstack-pagekit'
 import { Button } from '@/components/ui/button'
 import { Main } from '@/components/layout/main'
 import { RenderFormField } from '@/components/fields/render-form-field'
+import { FormServerError } from '@/components/fields/form-server-error'
 import type { BonCommande, BonCommandeForm, BonCommandeLineForm } from '@/features/types'
 import { useBonCommande, useCreateBonCommande, useUpdateBonCommande } from './resource'
 import {
@@ -164,6 +165,7 @@ export function BonsCommandeFormPage() {
           </Button>
         </div>
 
+        <FormServerError form={form} />
         <div className='flex justify-end gap-2 pt-2'>
           <Button type='button' variant='outline' onClick={() => navigate({ to: '/bons-commande' })}>
             Annuler

@@ -7,6 +7,7 @@ import { Checkbox } from '@/components/ui/checkbox'
 import { Label } from '@/components/ui/label'
 import { Main } from '@/components/layout/main'
 import { RenderFormField } from '@/components/fields/render-form-field'
+import { FormServerError } from '@/components/fields/form-server-error'
 import type { Customer, CustomerForm } from '@/features/types'
 import { useCreateCustomer, useCustomer, useUpdateCustomer } from './resource'
 import {
@@ -92,6 +93,7 @@ export function CustomersFormPage() {
           </form.Field>
         </div>
 
+        <FormServerError form={form} />
         <div className='flex justify-end gap-2 pt-2'>
           <Button type='button' variant='outline' onClick={() => navigate({ to: '/customers' })}>
             Cancel
