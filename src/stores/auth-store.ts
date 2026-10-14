@@ -22,6 +22,7 @@ interface AuthState {
     refreshToken: string
     setTokens: (accessToken: string, refreshToken: string) => void
     setAccessToken: (accessToken: string) => void
+    setRefreshToken: (refreshToken: string) => void
     reset: () => void
   }
 }
@@ -47,6 +48,11 @@ export const useAuthStore = create<AuthState>()((set) => {
           setCookie(ACCESS_TOKEN_COOKIE, accessToken)
           return { auth: { ...state.auth, accessToken } }
         }),
+      setRefreshToken: (refreshToken) =>
+        set((state) => {
+          setCookie(REFRESH_TOKEN_COOKIE, refreshToken)
+          return { auth: { ...state.auth, refreshToken } }
+        }),
       reset: () =>
         set((state) => {
           removeCookie(ACCESS_TOKEN_COOKIE)
@@ -64,3 +70,4 @@ export function hasRole(role: string): boolean {
 export function hasPermission(codename: string): boolean {
   return useAuthStore.getState().auth.user?.permissions.includes(codename) ?? false
 }
+

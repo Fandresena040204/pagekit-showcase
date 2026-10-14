@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useMutation } from '@tanstack/react-query'
 import { useNavigate, useSearch } from '@tanstack/react-router'
-import { Loader2, LogIn } from 'lucide-react'
+import { AlertCircle, Loader2, LogIn } from 'lucide-react'
 import { toast } from '@/lib/toast'
 import { useAuthStore } from '@/stores/auth-store'
 import { Button } from '@/components/ui/button'
@@ -11,6 +11,7 @@ import { Label } from '@/components/ui/label'
 import { PasswordInput } from '@/components/password-input'
 import { AuthLayout } from './auth-layout'
 import { fetchMe, login } from './api'
+import { rearmSessionExpiry, safeRedirect } from '@/lib/session'
 
 /**
  * Simplified port of poc-vente-front's `UserAuthForm`: same Card/AuthLayout
@@ -20,7 +21,7 @@ import { fetchMe, login } from './api'
  * buttons / sign-up / forgot-password links (those pages don't exist here).
  */
 export function SignInPage() {
-  const { redirect } = useSearch({ from: '/sign-in' })
+  const { redirect, reason } = useSearch({ from: '/sign-in' })
   const navigate = useNavigate()
   const { auth } = useAuthStore()
   const [username, setUsername] = useState('')
@@ -36,11 +37,10 @@ export function SignInPage() {
     },
     onSuccess: (user) => {
       toast.success(`Welcome back, ${user.username}!`)
-      navigate({ to: redirect || '/', replace: true })
+      rearmSessionExpiry()
+      navigate({ to: safeRedirect(redirect), replace: true })
     },
-    onError: () => {
-      toast.error("Nom d'utilisateur ou mot de passe incorrect.")
-    },
+    // No onError: the global mutation toast already shows the server's message.
   })
 
   return (
@@ -51,6 +51,12 @@ export function SignInPage() {
           <CardDescription>Enter your username and password below to log into your account.</CardDescription>
         </CardHeader>
         <CardContent>
+          {reason === 'expired' && (
+            <div className='mb-4 p-3 text-sm text-red-600 bg-red-50 border border-red-200 rounded flex items-center gap-2'>
+              <AlertCircle className='h-4 w-4 shrink-0' />
+              Votre session a expiré, reconnectez-vous.
+            </div>
+          )}
           <form
             onSubmit={(e) => {
               e.preventDefault()

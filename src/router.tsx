@@ -3,6 +3,7 @@ import { z } from 'zod'
 import { Toaster } from '@/components/ui/sonner'
 import { ApiErrorState } from '@/components/errors/api-error-state'
 import { AuthenticatedLayout } from '@/components/layout/authenticated-layout'
+import { apiErrorStatus } from 'tanstack-pagekit/axios'
 import { useAuthStore } from '@/stores/auth-store'
 import { fetchMe } from '@/features/auth/api'
 import { SignInPage } from '@/features/auth/sign-in-page'
@@ -49,7 +50,7 @@ const signInRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/sign-in',
   component: SignInPage,
-  validateSearch: z.object({ redirect: z.string().optional() }),
+  validateSearch: z.object({ redirect: z.string().optional(), reason: z.string().optional() }),
 })
 
 // Same shell/guard split as poc-vente-front's `_authenticated/route.tsx`:
@@ -68,9 +69,17 @@ const authenticatedRoute = createRoute({
     if (!user) {
       try {
         setUser(await fetchMe())
-      } catch {
-        reset()
-        throw redirect({ to: '/sign-in', search: { redirect: location.href } })
+      } catch (error) {
+        // Only a refused session signs out; a server that is down or failing
+        // shows the error screen and keeps the session.
+        if (apiErrorStatus(error) === 401) {
+          reset()
+          throw redirect({
+            to: '/sign-in',
+            search: { redirect: location.href, reason: 'expired' },
+          })
+        }
+        throw error
       }
     }
   },
